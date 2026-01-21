@@ -2,386 +2,399 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Kathy's Garden | Bioluminescent World</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kathy's Garden | Cinematic</title>
     <style>
-        body { 
-            margin: 0; 
-            overflow: hidden; 
-            background-color: #000508; 
-            font-family: 'Courier New', monospace;
+        @import url('https://fonts.googleapis.com/css2?family=Italianno&family=Cinzel:wght@400;700&display=swap');
+
+        :root {
+            --color-bg: #050210;
+            --color-moon: #b3cdd1;
+            --glow-primary: #00ffcc;
+            --glow-secondary: #aa00ff;
         }
 
-        /* UI Layer */
-        #ui {
-            position: absolute;
-            bottom: 30px;
-            left: 0;
+        body, html {
+            margin: 0;
+            padding: 0;
             width: 100%;
-            text-align: center;
-            pointer-events: none;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--color-bg);
+        }
+
+        /* --- ESCENARIO (CONTENEDOR 3D) --- */
+        .stage {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            perspective: 1000px; /* Profundidad simulada */
+            overflow: hidden;
+        }
+
+        /* Capas Globales */
+        .layer {
+            position: absolute;
+            width: 120%; /* Más ancho para permitir movimiento */
+            height: 120%;
+            left: -10%; top: -10%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            transform-style: preserve-3d;
+        }
+
+        /* --- CAPA 1: CIELO Y LUNA (FONDO LEJANO) --- */
+        .bg-sky {
+            background: radial-gradient(circle at 50% 30%, #1a1a3a 0%, #050210 80%);
+            z-index: 1;
+            transform: translateZ(-200px) scale(1.2);
+        }
+
+        .moon {
+            position: absolute;
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 150px;
+            background: var(--color-moon);
+            border-radius: 50%;
+            box-shadow: 
+                0 0 60px rgba(179, 205, 209, 0.4),
+                0 0 100px rgba(179, 205, 209, 0.1);
+            filter: blur(1px);
+            animation: moonFloat 20s ease-in-out infinite alternate;
+        }
+
+        /* --- CAPA 2: BOSQUE LEJANO (SILUETAS) --- */
+        .bg-forest {
+            z-index: 2;
+            transform: translateZ(-100px) scale(1.1);
+            filter: blur(2px) brightness(0.6);
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1000 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,500 L0,300 Q100,100 200,350 T400,300 T600,350 T800,250 T1000,350 L1000,500 Z' fill='%230a0a1a'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: bottom;
+            opacity: 0.8;
+            animation: panSlow 30s linear infinite alternate;
+        }
+
+        /* --- CAPA 3: ELEMENTOS PRINCIPALES (SVG ALTA DEFINICIÓN) --- */
+        .mid-ground {
+            z-index: 3;
+            transform: translateZ(0px);
+            /* Aquí van los hongos y plantas nítidas */
+        }
+
+        /* --- CAPA 4: PRIMER PLANO (DESENFOCADO - EFECTO CÁMARA) --- */
+        .foreground {
             z-index: 10;
+            transform: translateZ(100px) scale(0.9);
+            filter: blur(6px) contrast(1.2);
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1200 600' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M-100,600 C100,400 300,600 500,500 S800,600 1200,400 L1200,600 Z' fill='%23000'/%3E%3C/svg%3E");
+            background-size: cover;
+            background-position: bottom;
+            animation: panFast 25s ease-in-out infinite alternate;
+        }
+
+        /* --- OBJETOS SVG (Plantas Mágicas) --- */
+        .magic-plant {
+            position: absolute;
+            bottom: 0;
+            will-change: transform;
+        }
+        
+        .mushroom-group {
+            left: 20%;
+            bottom: 5%;
+            width: 300px;
+            animation: breathe 6s ease-in-out infinite;
+        }
+
+        .fern-group {
+            right: 15%;
+            bottom: 0;
+            width: 400px;
+            transform-origin: bottom center;
+            animation: sway 8s ease-in-out infinite;
+        }
+
+        /* --- UI / TÍTULO --- */
+        .title-container {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            text-align: center;
+            width: 100%;
         }
 
         h1 {
-            color: #00f0ff;
-            font-size: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 4px;
+            font-family: 'Italianno', cursive;
+            font-size: 7rem;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 0 20px var(--glow-secondary), 0 0 40px rgba(0,0,0,0.5);
             margin: 0;
-            text-shadow: 0 0 20px #00f0ff;
-            opacity: 0.8;
+            opacity: 0;
+            animation: fadeUp 3s ease-out forwards 1s;
+        }
+        
+        h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            letter-spacing: 8px;
+            color: var(--glow-primary);
+            margin-top: -10px;
+            text-transform: uppercase;
+            opacity: 0;
+            animation: fadeUp 3s ease-out forwards 2s;
         }
 
-        p {
-            color: #a060ff;
-            font-size: 0.8rem;
-            margin-top: 5px;
-            opacity: 0.6;
-            letter-spacing: 2px;
-        }
-
-        #loader {
+        /* --- CANVAS DE PARTÍCULAS (HADAS Y LUCES) --- */
+        canvas {
             position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            color: #00f0ff;
-            font-size: 1.2rem;
-            letter-spacing: 5px;
-            animation: blink 1s infinite;
-            z-index: 20;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 5; /* Entre el medio y el frente */
+            mix-blend-mode: screen; /* Fusión de luz */
         }
 
-        @keyframes blink { 50% { opacity: 0.3; } }
-    </style>
-    
-    <!-- Three.js Imports -->
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-            }
+        /* --- ANIMACIONES AUTOMÁTICAS (CINEMÁTICAS) --- */
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px var(--glow-secondary)); }
+            50% { transform: scale(1.03); filter: drop-shadow(0 0 25px var(--glow-secondary)); }
         }
-    </script>
+
+        @keyframes sway {
+            0% { transform: rotate(1deg); }
+            50% { transform: rotate(-2deg); }
+            100% { transform: rotate(1deg); }
+        }
+
+        @keyframes moonFloat {
+            0% { transform: translateX(-50%) translateY(0); }
+            100% { transform: translateX(-50%) translateY(-20px); }
+        }
+
+        @keyframes panSlow {
+            0% { transform: translateZ(-100px) scale(1.1) translateX(-2%); }
+            100% { transform: translateZ(-100px) scale(1.1) translateX(2%); }
+        }
+
+        @keyframes panFast {
+            0% { transform: translateZ(100px) scale(0.9) translateX(2%); }
+            100% { transform: translateZ(100px) scale(0.9) translateX(-2%); }
+        }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+        }
+        
+        /* Ajustes Móvil */
+        @media (max-width: 768px) {
+            h1 { font-size: 5rem; }
+            .mushroom-group { width: 180px; left: 10%; }
+            .fern-group { width: 250px; right: -10%; }
+        }
+    </style>
 </head>
 <body>
 
-    <div id="loader">NEURAL LINKING...</div>
-    
-    <div id="ui">
-        <h1>Kathy's Garden</h1>
-        <p>Bioluminescent Sector 07</p>
+    <!-- Escenario Cinematográfico -->
+    <div class="stage">
+        
+        <!-- Capa 1: Fondo -->
+        <div class="layer bg-sky">
+            <div class="moon"></div>
+        </div>
+
+        <!-- Capa 2: Bosque Siluetas -->
+        <div class="layer bg-forest"></div>
+
+        <!-- Capa de Hadas (Canvas JS) -->
+        <canvas id="fairyDust"></canvas>
+
+        <!-- Capa 3: Elementos Principales (SVG de alta calidad insertados en línea) -->
+        <div class="layer mid-ground">
+            
+            <!-- Hongos Mágicos (SVG Art) -->
+            <div class="magic-plant mushroom-group">
+                <svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="stemGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#aa00ff"/>
+                            <stop offset="100%" stop-color="#2a004a"/>
+                        </linearGradient>
+                        <radialGradient id="capGrad" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#00ffcc"/>
+                            <stop offset="90%" stop-color="#0044aa"/>
+                        </radialGradient>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+                            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                    </defs>
+                    <!-- Hongo Grande -->
+                    <path d="M120,380 Q100,200 130,150" stroke="url(#stemGrad)" stroke-width="20" fill="none" stroke-linecap="round"/>
+                    <path d="M60,150 Q150,50 240,150 Q150,170 60,150 Z" fill="url(#capGrad)" filter="url(#glow)"/>
+                    <!-- Manchas brillantes -->
+                    <circle cx="100" cy="120" r="5" fill="#fff" opacity="0.8"/>
+                    <circle cx="160" cy="100" r="8" fill="#fff" opacity="0.6"/>
+                    <circle cx="200" cy="130" r="4" fill="#fff" opacity="0.7"/>
+
+                    <!-- Hongo Pequeño -->
+                    <path d="M180,380 Q210,300 200,250" stroke="url(#stemGrad)" stroke-width="12" fill="none" stroke-linecap="round"/>
+                    <path d="M160,250 Q200,200 240,250 Q200,260 160,250 Z" fill="url(#capGrad)" filter="url(#glow)"/>
+                </svg>
+            </div>
+
+            <!-- Helecho Alienígena -->
+            <div class="magic-plant fern-group">
+                <svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+                     <defs>
+                        <linearGradient id="fernGrad" x1="0" y1="1" x2="0" y2="0">
+                            <stop offset="0%" stop-color="#001100"/>
+                            <stop offset="100%" stop-color="#00ffcc"/>
+                        </linearGradient>
+                    </defs>
+                    <g filter="url(#glow)">
+                        <path d="M200,500 Q150,300 50,200" stroke="url(#fernGrad)" stroke-width="2" fill="none"/>
+                        <path d="M200,500 Q200,250 200,50" stroke="url(#fernGrad)" stroke-width="3" fill="none"/>
+                        <path d="M200,500 Q250,300 350,250" stroke="url(#fernGrad)" stroke-width="2" fill="none"/>
+                        <!-- Hojas -->
+                        <ellipse cx="200" cy="50" rx="10" ry="30" fill="#00ffcc" opacity="0.6"/>
+                        <ellipse cx="50" cy="200" rx="10" ry="20" fill="#00ffcc" opacity="0.4" transform="rotate(-45 50 200)"/>
+                        <ellipse cx="350" cy="250" rx="10" ry="20" fill="#00ffcc" opacity="0.4" transform="rotate(45 350 250)"/>
+                    </g>
+                </svg>
+            </div>
+
+        </div>
+
+        <!-- Capa 4: Primer Plano (Blur) -->
+        <div class="layer foreground"></div>
+        
     </div>
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    <!-- Título Flotante -->
+    <div class="title-container">
+        <h1>Kathy's Garden</h1>
+        <h2>The Enchanted Realm</h2>
+    </div>
 
-        // --- 1. CONFIGURACIÓN E INICIALIZACIÓN ---
-        const config = {
-            fogColor: 0x000810,
-            neonCyan: 0x00f0ff,
-            neonPurple: 0xaa00ff,
-            neonGreen: 0x00ff88
-        };
+    <script>
+        /**
+         * KATHY'S GARDEN - CINEMATIC ENGINE
+         * Genera vida (hadas) usando Canvas, pero mantiene el fondo estático/CSS para nitidez.
+         */
+        
+        const canvas = document.getElementById('fairyDust');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        const fairies = [];
+        const dust = [];
 
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(config.fogColor);
-        scene.fog = new THREE.FogExp2(config.fogColor, 0.035); // Niebla densa y oscura
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(0, 3, 10);
+        // --- CLASE: HADA (FAIRY) ---
+        class Fairy {
+            constructor() {
+                this.init();
+            }
 
-        const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.toneMapping = THREE.ReinhardToneMapping;
-        document.body.appendChild(renderer.domElement);
+            init() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height * 0.8 + height * 0.1;
+                this.vx = (Math.random() - 0.5) * 1.5; // Velocidad X suave
+                this.vy = (Math.random() - 0.5) * 1.5; // Velocidad Y suave
+                this.size = Math.random() * 2 + 2;
+                this.angle = 0;
+                this.hue = Math.random() * 50 + 130; // Verdes a Azules
+            }
 
-        // --- 2. GENERADOR DE TEXTURAS (CANVAS) ---
-        // Truco Pro: Generamos la textura de "venas" con código para no cargar imágenes
-        function createBioTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 512; canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-            
-            // Fondo negro
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(0,0,512,512);
-            
-            // Líneas brillantes (venas)
-            ctx.strokeStyle = '#00ffff';
-            ctx.lineWidth = 3;
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#00ffff';
-            
-            for(let i=0; i<20; i++) {
+            update() {
+                // Movimiento biológico (Sine wave)
+                this.angle += 0.05;
+                this.x += this.vx + Math.sin(this.angle) * 0.5;
+                this.y += this.vy + Math.cos(this.angle * 0.5) * 0.3;
+
+                // Rebotar suavemente en bordes
+                if(this.x < 0 || this.x > width) this.vx *= -1;
+                if(this.y < 0 || this.y > height) this.vy *= -1;
+            }
+
+            draw() {
+                // Cuerpo brillante
                 ctx.beginPath();
-                ctx.moveTo(Math.random()*512, 0);
-                ctx.bezierCurveTo(
-                    Math.random()*512, 200, 
-                    Math.random()*512, 400, 
-                    Math.random()*512, 512
-                );
-                ctx.stroke();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `hsl(${this.hue}, 100%, 80%)`;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = `hsl(${this.hue}, 100%, 50%)`;
+                ctx.fill();
+                
+                // Alas (batido rápido)
+                const wingSize = this.size * 3;
+                const flap = Math.abs(Math.sin(Date.now() * 0.02)); // Aleteo
+                
+                ctx.fillStyle = `hsla(${this.hue}, 100%, 90%, ${0.3 * flap})`;
+                ctx.shadowBlur = 0;
+                
+                // Ala izquierda
+                ctx.beginPath();
+                ctx.ellipse(this.x - this.size, this.y, wingSize * flap, wingSize/3, Math.PI/4, 0, Math.PI*2);
+                ctx.fill();
+                // Ala derecha
+                ctx.beginPath();
+                ctx.ellipse(this.x + this.size, this.y, wingSize * flap, wingSize/3, -Math.PI/4, 0, Math.PI*2);
+                ctx.fill();
             }
-            return new THREE.CanvasTexture(canvas);
         }
-        
-        function createHoloPanelTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 256; canvas.height = 256;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = 'rgba(0, 240, 255, 0.1)';
-            ctx.fillRect(10,10,236,236);
-            ctx.strokeStyle = '#00f0ff';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(10,10,236,236);
-            
-            // "Datos" ficticios
-            ctx.fillStyle = '#00f0ff';
-            for(let i=0; i<10; i++) {
-                ctx.fillRect(30, 40 + i*20, Math.random()*150 + 20, 5);
+
+        // --- CLASE: POLVO MÁGICO (FONDO) ---
+        class Dust {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vy = Math.random() * -0.5 - 0.1; // Siempre sube lento
+                this.size = Math.random() * 1.5;
+                this.alpha = Math.random();
             }
-            return new THREE.CanvasTexture(canvas);
-        }
-
-        const bioTexture = createBioTexture();
-        const holoTexture = createHoloPanelTexture();
-
-        // --- 3. CREACIÓN DEL MUNDO ---
-
-        // A. SUELO (Terreno Alienígena)
-        const groundGeo = new THREE.PlaneGeometry(100, 100, 64, 64);
-        const posAttr = groundGeo.attributes.position;
-        for(let i=0; i<posAttr.count; i++){
-            const x = posAttr.getX(i);
-            const y = posAttr.getY(i); // En PlaneGeometry es Y local, pero será Z en mundo
-            // Ruido simple para montañas suaves
-            const z = Math.sin(x*0.1) * Math.cos(y*0.1) * 2 + Math.random()*0.2;
-            posAttr.setZ(i, z);
-        }
-        groundGeo.computeVertexNormals();
-        
-        const groundMat = new THREE.MeshStandardMaterial({ 
-            color: 0x050510, 
-            roughness: 0.6,
-            metalness: 0.2
-        });
-        const ground = new THREE.Mesh(groundGeo, groundMat);
-        ground.rotation.x = -Math.PI/2;
-        scene.add(ground);
-
-        // B. ÁRBOLES GIGANTES (HONGOS DE AVATAR)
-        function createGiantMushroom(x, z, scale) {
-            const group = new THREE.Group();
-            
-            // Tronco (Curvo y brillante)
-            const trunkGeo = new THREE.CylinderGeometry(0.5 * scale, 1.5 * scale, 10 * scale, 16, 4);
-            // Deformar tronco (Curvearlo)
-            const trunkPos = trunkGeo.attributes.position;
-            for(let i=0; i<trunkPos.count; i++){
-                const y = trunkPos.getY(i);
-                if(y > 0) {
-                    const angle = y * 0.1;
-                    trunkPos.setX(i, trunkPos.getX(i) + Math.sin(angle) * 2);
-                }
+            update() {
+                this.y += this.vy;
+                if(this.y < -10) this.y = height + 10;
             }
-            trunkGeo.computeVertexNormals();
-
-            const trunkMat = new THREE.MeshStandardMaterial({
-                color: 0x111122,
-                emissive: config.neonCyan,
-                emissiveMap: bioTexture,
-                emissiveIntensity: 2,
-                roughness: 0.4
-            });
-            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-            trunk.position.y = 5 * scale;
-            group.add(trunk);
-
-            // Sombrero del hongo (Glowing Underside)
-            const capGeo = new THREE.LatheGeometry(
-                [new THREE.Vector2(0,0), new THREE.Vector2(3*scale, -0.5*scale), new THREE.Vector2(4*scale, 1*scale), new THREE.Vector2(0, 2*scale)],
-                16
-            );
-            const capMat = new THREE.MeshStandardMaterial({
-                color: config.neonPurple,
-                emissive: 0x4400aa,
-                emissiveIntensity: 0.5,
-                side: THREE.DoubleSide
-            });
-            const cap = new THREE.Mesh(capGeo, capMat);
-            cap.position.y = 10 * scale;
-            // Branquias brillantes debajo
-            const gillsGeo = new THREE.CircleGeometry(3.8 * scale, 32);
-            const gillsMat = new THREE.MeshBasicMaterial({
-                color: config.neonCyan,
-                map: bioTexture,
-                transparent: true,
-                opacity: 0.6,
-                side: THREE.DoubleSide
-            });
-            const gills = new THREE.Mesh(gillsGeo, gillsMat);
-            gills.rotation.x = Math.PI/2;
-            gills.position.y = 9.5 * scale;
-            
-            group.add(cap);
-            group.add(gills);
-            
-            group.position.set(x, -1, z);
-            scene.add(group);
+            draw() {
+                ctx.fillStyle = `rgba(200, 255, 255, ${this.alpha * 0.3})`;
+                ctx.shadowBlur = 0;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx.fill();
+            }
         }
 
-        // Crear bosque
-        createGiantMushroom(0, -10, 1.2); // Héroe central
-        createGiantMushroom(-15, -20, 0.8);
-        createGiantMushroom(15, -25, 0.9);
-        createGiantMushroom(-8, 10, 0.6);
-        createGiantMushroom(12, 5, 0.7);
-
-
-        // C. VEGETACIÓN DE SUELO (Instancing para rendimiento)
-        // Helechos brillantes
-        const fernGeo = new THREE.ConeGeometry(0.2, 1, 3);
-        const fernMat = new THREE.MeshBasicMaterial({ color: config.neonGreen });
-        const ferns = new THREE.InstancedMesh(fernGeo, fernMat, 1000);
-        const dummy = new THREE.Object3D();
-        
-        for(let i=0; i<1000; i++) {
-            dummy.position.set((Math.random()-0.5)*80, 0, (Math.random()-0.5)*80);
-            dummy.scale.setScalar(0.5 + Math.random());
-            dummy.rotation.set(Math.random()*0.5, Math.random()*Math.PI, Math.random()*0.5);
-            dummy.updateMatrix();
-            ferns.setMatrixAt(i, dummy.matrix);
-        }
-        scene.add(ferns);
-
-
-        // D. PANELES HOLOGRÁFICOS (Tech vibe)
-        const panelGeo = new THREE.PlaneGeometry(2, 1.5);
-        const panelMat = new THREE.MeshBasicMaterial({ 
-            map: holoTexture, 
-            transparent: true, 
-            opacity: 0.8,
-            color: config.neonCyan,
-            side: THREE.DoubleSide,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false
-        });
-        
-        const panels = [];
-        for(let i=0; i<5; i++){
-            const panel = new THREE.Mesh(panelGeo, panelMat);
-            panel.position.set((Math.random()-0.5)*20, 0.8, (Math.random()-0.5)*10 + 5);
-            panel.lookAt(0, 1, 0); // Mirar al centro (más o menos)
-            scene.add(panel);
-            panels.push(panel);
-        }
-
-        // E. MARIPOSAS (Partículas simples animadas)
-        const butterflyCount = 50;
-        const butterflyGeo = new THREE.BufferGeometry();
-        const bPos = [];
-        const bSpeed = [];
-        
-        for(let i=0; i<butterflyCount; i++){
-            bPos.push((Math.random()-0.5)*30, Math.random()*10, (Math.random()-0.5)*30);
-            bSpeed.push(Math.random()*0.02 + 0.01);
-        }
-        butterflyGeo.setAttribute('position', new THREE.Float32BufferAttribute(bPos, 3));
-        const butterflyMat = new THREE.PointsMaterial({
-            color: 0xffffff,
-            size: 0.3,
-            map: (function() {
-                // Textura circular suave on-the-fly
-                const c = document.createElement('canvas'); c.width=32; c.height=32;
-                const ctx = c.getContext('2d');
-                const grad = ctx.createRadialGradient(16,16,0,16,16,16);
-                grad.addColorStop(0, 'rgba(255,255,255,1)');
-                grad.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = grad; ctx.fillRect(0,0,32,32);
-                return new THREE.CanvasTexture(c);
-            })(),
-            transparent: true,
-            blending: THREE.AdditiveBlending
-        });
-        const butterflies = new THREE.Points(butterflyGeo, butterflyMat);
-        scene.add(butterflies);
-
-        // --- 4. ILUMINACIÓN Y POST-PROCESADO ---
-        const ambientLight = new THREE.AmbientLight(0x001133, 1.5); // Azul oscuro base
-        scene.add(ambientLight);
-
-        // Luz principal azulada
-        const dirLight = new THREE.DirectionalLight(0x4488ff, 1);
-        dirLight.position.set(-10, 20, 10);
-        scene.add(dirLight);
-
-        // Point Lights (Luces de colores locales)
-        const pLight1 = new THREE.PointLight(config.neonPurple, 5, 20);
-        pLight1.position.set(0, 5, -5);
-        scene.add(pLight1);
-
-        // BLOOM (EL SECRETO DE LA IMAGEN)
-        const renderScene = new RenderPass(scene, camera);
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-        bloomPass.threshold = 0;   // Todo brilla un poco
-        bloomPass.strength = 2.5;  // Intensidad MUY ALTA para efecto neón
-        bloomPass.radius = 0.8;    // Difusión amplia
-        
-        const composer = new EffectComposer(renderer);
-        composer.addPass(renderScene);
-        composer.addPass(bloomPass);
-
-        // --- 5. ANIMACIÓN ---
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.5;
-        controls.maxPolarAngle = Math.PI / 2 - 0.05; // No ver debajo del suelo
-
-        const clock = new THREE.Clock();
-        document.getElementById('loader').style.display = 'none';
+        // Inicializar
+        for(let i=0; i<15; i++) fairies.push(new Fairy()); // 15 Hadas "Heroicas"
+        for(let i=0; i<100; i++) dust.push(new Dust());    // 100 partículas de ambiente
 
         function animate() {
-            const time = clock.getElapsedTime();
+            ctx.clearRect(0, 0, width, height);
+            
+            // Dibujar Polvo (Fondo)
+            dust.forEach(d => { d.update(); d.draw(); });
 
-            // Animar Mariposas
-            const positions = butterflies.geometry.attributes.position.array;
-            for(let i=0; i<butterflyCount; i++){
-                const idx = i*3;
-                positions[idx+1] += Math.sin(time * 2 + i) * 0.02; // Flotar arriba/abajo
-                positions[idx] += Math.cos(time * 0.5 + i) * 0.02; // Mover en X
-                // Reset si bajan mucho
-                if(positions[idx+1] < 0) positions[idx+1] = 10;
-            }
-            butterflies.geometry.attributes.position.needsUpdate = true;
+            // Dibujar Hadas (Primer plano)
+            fairies.forEach(f => { f.update(); f.draw(); });
 
-            // Animar Paneles (Flotar)
-            panels.forEach((p, i) => {
-                p.position.y = 0.8 + Math.sin(time + i) * 0.1;
-            });
-
-            // "Latido" de la luz
-            pLight1.intensity = 4 + Math.sin(time * 2) * 2;
-
-            controls.update();
-            composer.render();
             requestAnimationFrame(animate);
         }
-
-        // Resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-        });
 
         animate();
 
