@@ -2,64 +2,81 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kathy's Garden | 3D Realm</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Kathy's Garden | Mobile Experience</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; }
-        
-        /* Capa de Texto (UI) */
-        #ui {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            pointer-events: none; /* Click traspasa al 3D */
-            z-index: 10;
-            font-family: 'Courier New', Courier, monospace; /* Fallback */
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #0b0b14; 
+            touch-action: none; /* Previene scroll nativo del celular */
         }
         
-        /* Importamos fuentes bonitas */
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Quicksand:wght@300&display=swap');
+        /* UI SUPERIOR */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
 
         h1 {
-            font-family: 'Cinzel Decorative', cursive;
-            font-size: 5rem;
-            color: #fff;
+            font-family: 'Courier New', sans-serif; /* Fallback */
+            font-size: 3rem;
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255,255,255,0.8);
+            text-shadow: 0 0 10px rgba(180, 100, 255, 0.5);
             margin: 0;
-            text-shadow: 0 0 30px rgba(255, 0, 200, 0.8), 0 0 60px rgba(0, 200, 255, 0.6);
-            letter-spacing: 5px;
-            animation: pulse 4s infinite ease-in-out;
-        }
-
-        p {
-            font-family: 'Quicksand', sans-serif;
-            color: #aaddff;
-            font-size: 1.2rem;
-            letter-spacing: 8px;
             text-transform: uppercase;
-            opacity: 0.8;
+            font-weight: 900;
+            letter-spacing: 2px;
         }
 
-        /* Pequeña animación del texto */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(0.98); }
+        .hint {
+            font-family: sans-serif;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: fadeUp 2s infinite;
+            background: rgba(0,0,0,0.3);
+            padding: 10px 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
         }
 
-        /* Cargando... */
+        /* Cargador */
         #loader {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
-            color: white;
-            font-family: sans-serif;
-            font-size: 0.8rem;
-            opacity: 0.5;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00d2ff;
+            font-family: monospace;
+            font-size: 1.2rem;
+            z-index: 20;
+            transition: opacity 0.5s;
         }
+
+        @keyframes fadeUp {
+            0%, 100% { opacity: 0.4; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-5px); }
+        }
+
+        /* Fuentes Web */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap');
+        h1 { font-family: 'Cinzel', serif; }
     </style>
-    
-    <!-- Mapa de importación para que el navegador sepa dónde buscar Three.js -->
+
+    <!-- IMPORT MAP PARA CARGAR THREE.JS SIN NPM -->
     <script type="importmap">
         {
             "imports": {
@@ -71,188 +88,241 @@
 </head>
 <body>
 
-    <div id="ui">
-        <h1>Kathy's Garden</h1>
-        <p>A Digital Sanctuary</p>
+    <!-- UI Overlay -->
+    <div id="ui-layer">
+        <h1>Kathy's<br><span style="font-size:1.5rem; color:#d4aaff; -webkit-text-stroke:0;">Garden</span></h1>
+        <div class="hint">◆ Arrastra para girar ◆</div>
     </div>
-    <div id="loader">Generando ecosistema 3D...</div>
 
-    <!-- El script principal del 3D -->
+    <div id="loader">Cargando Magia...</div>
+
+    <!-- CANVAS ENGINE -->
     <script type="module">
         import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-        // 1. ESCENA Y CÁMARA
+        // --- CONFIGURACIÓN OPTIMIZADA ---
+        const config = {
+            bgColor: 0x0b0b14,
+            islandColor: 0x1a1a2e,
+            accentColor: 0x00ffcc,
+            bloomStrength: 1.2,
+            bloomRadius: 0.5,
+            bloomThreshold: 0.1
+        };
+
+        // 1. ESCENA BASE
         const scene = new THREE.Scene();
-        // Niebla densa para ocultar el horizonte y dar atmósfera mística
-        scene.fog = new THREE.FogExp2(0x050510, 0.035); 
+        scene.background = new THREE.Color(config.bgColor);
+        scene.fog = new THREE.FogExp2(config.bgColor, 0.04); // Niebla para fundir bordes
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(0, 1.5, 5);
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 8, 14); // Ángulo isométrico/juego
 
-        const renderer = new THREE.WebGLRenderer({ antialias: false }); // Bloom se encarga del suavizado
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.toneMapping = THREE.ReinhardToneMapping;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limitar pixel ratio para batería
+        renderer.shadowMap.enabled = true; // Sombras activadas
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
-        // 2. POST-PROCESADO (EL EFECTO GLOW/BLOOM)
+        // 2. CONTROLES TÁCTILES (OrbitControls)
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // Inercia suave
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true; // Gira solo al principio
+        controls.autoRotateSpeed = 0.8;
+        controls.maxPolarAngle = Math.PI / 2 - 0.1; // No dejar ver por debajo del suelo
+        controls.minDistance = 5;
+        controls.maxDistance = 20;
+
+        // 3. POST-PROCESADO (BLOOM PARA EFECTO MÁGICO)
         const renderScene = new RenderPass(scene, camera);
-        
-        // Configuración del Brillo (Bloom)
         const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-        bloomPass.threshold = 0;   // Qué tan brillante debe ser algo para brillar (0 = todo brilla un poco)
-        bloomPass.strength = 2.0;  // Intensidad del brillo (Muy alto para efecto mágico)
-        bloomPass.radius = 0.5;    // Radio de dispersión
+        bloomPass.threshold = config.bloomThreshold;
+        bloomPass.strength = config.bloomStrength;
+        bloomPass.radius = config.bloomRadius;
 
         const composer = new EffectComposer(renderer);
         composer.addPass(renderScene);
         composer.addPass(bloomPass);
 
-        // 3. CREACIÓN DEL MUNDO (PROCEDURAL)
+        // 4. CONSTRUCCIÓN DEL MUNDO (LA ISLA)
         
-        // Materiales
-        const groundMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x111111, 
-            roughness: 0.4, 
-            metalness: 0.6 
+        // Grupo principal que flotará
+        const islandGroup = new THREE.Group();
+        scene.add(islandGroup);
+
+        // Suelo de la isla
+        const islandGeo = new THREE.CylinderGeometry(5, 3, 2, 7, 1);
+        const islandMat = new THREE.MeshStandardMaterial({ 
+            color: config.islandColor, 
+            flatShading: true, // Estilo Low Poly
+            roughness: 0.8 
         });
+        const island = new THREE.Mesh(islandGeo, islandMat);
+        island.receiveShadow = true;
+        islandGroup.add(island);
 
-        // Suelo (Plano infinito simulado)
-        const plane = new THREE.Mesh(new THREE.PlaneGeometry(200, 200, 64, 64), groundMaterial);
-        plane.rotation.x = -Math.PI / 2;
-        // Creamos montañas suaves moviendo vértices
-        const posAttribute = plane.geometry.attributes.position;
-        for ( let i = 0; i < posAttribute.count; i ++ ) {
-            const z = posAttribute.getZ( i );
-            // Ruido aleatorio para el terreno
-            posAttribute.setZ( i, z + Math.random() * 1.5 ); 
-        }
-        scene.add(plane);
-
-        // Generador de Árboles abstractos (Cristales)
-        const treeGeometry = new THREE.ConeGeometry(0.2, 1, 4, 1);
-        const treeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff }); // Cian base
-        const treeCount = 400;
-
-        const instancedTrees = new THREE.InstancedMesh(treeGeometry, treeMaterial, treeCount);
+        // Generador de Césped Optimizado (InstancedMesh)
+        // Esto permite dibujar 800 hierbas como si fuera 1 solo objeto
+        const grassCount = 800;
+        const grassGeo = new THREE.ConeGeometry(0.1, 0.5, 3);
+        const grassMat = new THREE.MeshLambertMaterial({ color: 0x2d4a5c });
+        const grassMesh = new THREE.InstancedMesh(grassGeo, grassMat, grassCount);
+        
         const dummy = new THREE.Object3D();
-        const colors = [];
-
-        for(let i=0; i<treeCount; i++) {
-            // Posición aleatoria
-            const x = (Math.random() - 0.5) * 60;
-            const z = (Math.random() - 0.5) * 60 - 10; // Más hacia atrás
+        for(let i=0; i<grassCount; i++) {
+            // Posición aleatoria en círculo
+            const r = Math.random() * 4.5;
+            const theta = Math.random() * Math.PI * 2;
+            const x = r * Math.cos(theta);
+            const z = r * Math.sin(theta);
             
-            // Escalado aleatorio (altos y delgados)
-            const s = Math.random() * 0.5 + 0.5; 
-            const h = Math.random() * 5 + 2;
-            
-            dummy.position.set(x, h/2 - 0.5, z);
-            dummy.scale.set(s, h, s);
+            dummy.position.set(x, 1, z);
+            dummy.scale.setScalar(0.5 + Math.random() * 1.5); // Variedad de tamaños
             dummy.rotation.y = Math.random() * Math.PI;
+            dummy.rotation.x = (Math.random() - 0.5) * 0.2; // Inclinación aleatoria
             dummy.updateMatrix();
-            instancedTrees.setMatrixAt(i, dummy.matrix);
-
-            // Colores Neon aleatorios por árbol
-            const color = new THREE.Color();
-            // Mezcla entre azul, morado y magenta
-            color.setHSL(Math.random() * 0.2 + 0.5, 0.9, 0.5); 
-            instancedTrees.setColorAt(i, color);
+            grassMesh.setMatrixAt(i, dummy.matrix);
         }
-        scene.add(instancedTrees);
+        grassMesh.receiveShadow = true;
+        islandGroup.add(grassMesh);
 
-        // 4. LUCIÉRNAGAS (SISTEMA DE PARTÍCULAS)
-        const particlesGeometry = new THREE.BufferGeometry();
-        const particlesCount = 1500;
+        // Árbol Mágico Central (Procedural Low Poly)
+        function createTree() {
+            const treeGroup = new THREE.Group();
+
+            // Tronco
+            const trunkGeo = new THREE.CylinderGeometry(0.2, 0.6, 2.5, 5);
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3b2a, flatShading: true });
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.y = 2.25;
+            trunk.castShadow = true;
+            treeGroup.add(trunk);
+
+            // Copa del árbol (Icosaedros brillantes)
+            const leavesGeo = new THREE.IcosahedronGeometry(1.2, 0);
+            const leavesMat = new THREE.MeshStandardMaterial({ 
+                color: 0xff00aa, // Magenta
+                emissive: 0xaa0044, // Brillo propio
+                emissiveIntensity: 0.5,
+                flatShading: true 
+            });
+            const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+            leaves.position.y = 3.5;
+            leaves.castShadow = true;
+            treeGroup.add(leaves);
+
+            // Pequeñas hojas flotantes alrededor
+            const smallLeavesGeo = new THREE.IcosahedronGeometry(0.4, 0);
+            for(let i=0; i<5; i++){
+                const sl = new THREE.Mesh(smallLeavesGeo, leavesMat);
+                sl.position.set(
+                    (Math.random()-0.5)*2,
+                    3 + Math.random()*1.5,
+                    (Math.random()-0.5)*2
+                );
+                treeGroup.add(sl);
+            }
+
+            return treeGroup;
+        }
+        const heroTree = createTree();
+        islandGroup.add(heroTree);
+
+
+        // Cristales / Flores Brillantes (Point Lights disimuladas)
+        const crystalGeo = new THREE.OctahedronGeometry(0.2, 0);
+        const crystalMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+        
+        for(let i=0; i<8; i++){
+            const crystal = new THREE.Mesh(crystalGeo, crystalMat);
+            const r = 2 + Math.random() * 2;
+            const theta = Math.random() * Math.PI * 2;
+            crystal.position.set(r * Math.cos(theta), 1.2, r * Math.sin(theta));
+            islandGroup.add(crystal);
+        }
+
+        // 5. ILUMINACIÓN
+        const ambientLight = new THREE.AmbientLight(0x404040, 1.5); // Luz base
+        scene.add(ambientLight);
+
+        // Luz principal (Luna)
+        const dirLight = new THREE.DirectionalLight(0xaaccff, 2);
+        dirLight.position.set(-5, 10, 5);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 1024; // Calidad de sombra aceptable para móvil
+        dirLight.shadow.mapSize.height = 1024;
+        scene.add(dirLight);
+
+        // Luz mágica del árbol
+        const treeLight = new THREE.PointLight(0xff00aa, 3, 8);
+        treeLight.position.set(0, 3, 0);
+        islandGroup.add(treeLight);
+
+
+        // 6. SISTEMA DE PARTÍCULAS (Luciérnagas que rodean la isla)
+        const particlesCount = 100;
         const posArray = new Float32Array(particlesCount * 3);
-        const randomArray = new Float32Array(particlesCount); // Para animaciones individuales
+        
+        for(let i=0; i<particlesCount * 3; i+=3) {
+            // Esfera alrededor de la isla
+            const r = 4 + Math.random() * 5;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.random() * Math.PI; // Esfera completa
 
-        for(let i = 0; i < particlesCount * 3; i+=3) {
-            posArray[i] = (Math.random() - 0.5) * 50;     // X
-            posArray[i+1] = Math.random() * 10;           // Y (Altura)
-            posArray[i+2] = (Math.random() - 0.5) * 50 - 5; // Z
-            
-            randomArray[i/3] = Math.random(); // Fase aleatoria
+            posArray[i] = r * Math.sin(phi) * Math.cos(theta);
+            posArray[i+1] = r * Math.sin(phi) * Math.sin(theta) + 2; // Offset Y
+            posArray[i+2] = r * Math.cos(phi);
         }
 
-        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-        particlesGeometry.setAttribute('aRandom', new THREE.BufferAttribute(randomArray, 1));
-
-        // Material de partículas personalizado
-        const particlesMaterial = new THREE.PointsMaterial({
-            size: 0.08,
-            color: 0xffffee, // Blanco dorado
+        const particlesGeo = new THREE.BufferGeometry();
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMat = new THREE.PointsMaterial({
+            size: 0.15,
+            color: 0xffd700, // Dorado
             transparent: true,
             opacity: 0.8,
             blending: THREE.AdditiveBlending
         });
-
-        const fireflies = new THREE.Points(particlesGeometry, particlesMaterial);
+        const fireflies = new THREE.Points(particlesGeo, particlesMat);
         scene.add(fireflies);
 
-        // 5. ILUMINACIÓN
-        const ambientLight = new THREE.AmbientLight(0x404040, 2); // Luz base tenue
-        scene.add(ambientLight);
 
-        // Luces puntuales de colores (Magia)
-        const light1 = new THREE.PointLight(0xff00ff, 2, 20); // Magenta
-        light1.position.set(5, 5, 5);
-        scene.add(light1);
-
-        const light2 = new THREE.PointLight(0x00ffff, 2, 20); // Cian
-        light2.position.set(-5, 5, -5);
-        scene.add(light2);
-
-
-        // 6. ANIMACIÓN E INTERACCIÓN
-        let mouseX = 0;
-        let mouseY = 0;
-        let targetX = 0;
-        let targetY = 0;
-
-        const windowHalfX = window.innerWidth / 2;
-        const windowHalfY = window.innerHeight / 2;
-
-        document.addEventListener('mousemove', (event) => {
-            mouseX = (event.clientX - windowHalfX) * 0.001;
-            mouseY = (event.clientY - windowHalfY) * 0.001;
-        });
-
+        // 7. ANIMACIÓN
         const clock = new THREE.Clock();
+        
+        // Ocultar loader
+        document.getElementById('loader').style.opacity = '0';
+        setTimeout(() => document.getElementById('loader').remove(), 500);
 
         function animate() {
             const time = clock.getElapsedTime();
 
-            // Movimiento suave de cámara
-            targetX = mouseX * 2;
-            targetY = mouseY * 2;
-            
-            camera.position.x += (targetX - camera.position.x) * 0.05;
-            camera.position.y += (-targetY - camera.position.y + 2) * 0.05; // +2 base height
-            camera.lookAt(0, 1, 0);
+            // Flotación de la isla (Seno)
+            islandGroup.position.y = Math.sin(time * 0.5) * 0.3;
 
-            // Animar Luciérnagas (Ondulación vertical y horizontal)
-            const positions = fireflies.geometry.attributes.position.array;
-            for(let i=0; i<particlesCount; i++) {
-                const i3 = i*3;
-                // Movimiento orgánico basado en tiempo y posición original
-                positions[i3 + 1] += Math.sin(time * 0.5 + positions[i3]) * 0.005; // Y
-                positions[i3] += Math.cos(time * 0.3 + positions[i3+1]) * 0.005;   // X
-            }
-            fireflies.geometry.attributes.position.needsUpdate = true;
+            // Rotación suave de partículas
+            fireflies.rotation.y = time * 0.05;
 
-            // Rotación leve del bosque
-            instancedTrees.rotation.y = Math.sin(time * 0.05) * 0.05;
+            // Si el usuario toca, desactivamos la rotación automática para que tenga control
+            controls.update();
 
-            // Renderizar con el efecto Bloom
+            // Renderizar usando el Composer (con Bloom)
             composer.render();
             requestAnimationFrame(animate);
         }
 
-        // Ajuste de ventana
+        // Eventos táctiles para detener rotación automática
+        renderer.domElement.addEventListener('touchstart', () => {
+            controls.autoRotate = false;
+        });
+
+        // Resize
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -260,8 +330,8 @@
             composer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        document.getElementById('loader').style.display = 'none';
         animate();
+
     </script>
 </body>
 </html>
