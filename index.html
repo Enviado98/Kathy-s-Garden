@@ -1,310 +1,337 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kathy's Garden</title>
+    <title>Kathy's Garden | Ethereal Realm</title>
     <style>
-        /* --- CONFIGURACIÓN GENERAL --- */
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Quicksand:wght@300&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300&display=swap');
 
         :root {
-            --bg-deep: #0f0c29;
-            --bg-mid: #302b63;
-            --bg-light: #24243e;
-            --accent-glow: #ff00cc;
-            --plant-color: #00d2ff;
-            --fairy-light: #fff5c3;
+            --text-glow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 0, 200, 0.4);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            height: 100vh;
-            width: 100vw;
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
-            background: radial-gradient(circle at bottom, var(--bg-mid), var(--bg-deep));
-            font-family: 'Quicksand', sans-serif;
-            color: white;
-            position: relative;
+            background-color: #050510; /* Fallback */
         }
 
-        /* --- TÍTULO PRINCIPAL --- */
-        .container {
+        canvas {
+            display: block;
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* UI Layer */
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 10;
-            pointer-events: none; /* Dejar pasar clicks al jardín */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none; /* Allows mouse through to canvas */
+            background: radial-gradient(circle at center, transparent 0%, #000000 150%);
         }
 
         h1 {
-            font-family: 'Cinzel Decorative', cursive;
-            font-size: 5rem;
-            color: transparent;
-            background: linear-gradient(to bottom, #fff, #e0c3fc);
-            -webkit-background-clip: text;
-            text-shadow: 0 0 20px rgba(224, 195, 252, 0.4);
-            letter-spacing: 4px;
-            animation: breathe 4s ease-in-out infinite;
-        }
-
-        p.subtitle {
-            font-size: 1.2rem;
-            letter-spacing: 5px;
-            opacity: 0.8;
-            margin-top: 10px;
+            font-family: 'Cinzel', serif;
+            font-size: 6vw;
+            color: rgba(255, 255, 255, 0.95);
             text-transform: uppercase;
-            color: #bcdae6;
-        }
-
-        /* --- JARDÍN (CONTENEDOR) --- */
-        .garden-floor {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 30vh;
-            z-index: 5;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            filter: drop-shadow(0 0 10px rgba(0, 210, 255, 0.2));
-        }
-
-        /* --- ELEMENTOS DEL JARDÍN (PLANTAS FICTICIAS) --- */
-        /* Usamos CSS shapes y SVGs generados dinámicamente */
-        .plant {
-            position: absolute;
-            bottom: -20px;
-            opacity: 0.8;
-            transform-origin: bottom center;
-            transition: transform 0.3s ease;
-        }
-        
-        /* Efecto Hover en las plantas */
-        .plant:hover {
-            filter: drop-shadow(0 0 15px var(--accent-glow));
-            transform: scale(1.1) translateY(-10px);
-            z-index: 20;
-            cursor: pointer;
-        }
-
-        /* --- LUCIÉRNAGAS (PARTÍCULAS) --- */
-        .firefly {
-            position: absolute;
-            border-radius: 50%;
-            background: var(--fairy-light);
-            box-shadow: 0 0 10px var(--fairy-light), 0 0 20px var(--accent-glow);
+            letter-spacing: 12px;
+            margin: 0;
+            text-shadow: var(--text-glow);
             opacity: 0;
-            pointer-events: none;
-            animation: fly 15s linear infinite;
+            animation: fadeIn 3s ease-out forwards 1s;
         }
 
-        /* --- BURBUJAS MÁGICAS --- */
-        .orb {
+        p {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2rem;
+            color: #aaddff;
+            letter-spacing: 6px;
+            margin-top: 20px;
+            opacity: 0;
+            animation: fadeIn 3s ease-out forwards 2s;
+            text-shadow: 0 0 5px #00d2ff;
+        }
+
+        /* Vignette effect via CSS for better performance than Canvas */
+        .vignette {
             position: absolute;
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(255,255,255,0.1));
-            border-radius: 50%;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle, transparent 40%, black 120%);
+            z-index: 5;
             pointer-events: none;
-            mix-blend-mode: overlay;
         }
 
-        /* --- ANIMACIONES --- */
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); opacity: 1; text-shadow: 0 0 20px rgba(224, 195, 252, 0.4); }
-            50% { transform: scale(1.02); opacity: 0.9; text-shadow: 0 0 40px rgba(224, 195, 252, 0.8); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes sway {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(2deg); }
-            50% { transform: rotate(0deg); }
-            75% { transform: rotate(-2deg); }
-            100% { transform: rotate(0deg); }
-        }
-
-        @keyframes sway-vigorous {
-            0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(5deg) scale(1.05); }
-            100% { transform: rotate(0deg) scale(1); }
-        }
-
-        @keyframes fly {
-            0% { transform: translate(0, 0) scale(0); opacity: 0; }
-            10% { opacity: 1; transform: translate(var(--x1), var(--y1)) scale(1); }
-            50% { opacity: 0.8; transform: translate(var(--x2), var(--y2)) scale(0.8); }
-            90% { opacity: 1; transform: translate(var(--x3), var(--y3)) scale(1.2); }
-            100% { transform: translate(var(--xEnd), var(--yEnd)) scale(0); opacity: 0; }
-        }
-
-        @keyframes floatUp {
-            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
-            50% { opacity: 0.6; }
-            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
-        }
-
-        /* Responsive adjustments */
+        /* Mobile adjustments */
         @media (max-width: 768px) {
-            h1 { font-size: 3rem; }
-            .subtitle { font-size: 0.9rem; }
+            h1 { font-size: 3rem; letter-spacing: 5px; }
+            p { font-size: 0.9rem; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Contenido Principal -->
-    <div class="container">
+    <div class="vignette"></div>
+    
+    <div class="ui-layer">
         <h1>Kathy's Garden</h1>
-        <p class="subtitle">Where Magic Blooms</p>
+        <p>THE ETERNAL SANCTUARY</p>
     </div>
 
-    <!-- Contenedor del suelo del jardín -->
-    <div class="garden-floor" id="garden">
-        <!-- Las plantas se generan con JS para aleatoriedad -->
-    </div>
-
-    <!-- Capa de partículas de fondo -->
-    <div id="particles"></div>
+    <canvas id="world"></canvas>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const garden = document.getElementById('garden');
-            const particlesContainer = document.getElementById('particles');
-            const colors = ['#ff00cc', '#00d2ff', '#bd00ff', '#00ff9d', '#ffffff'];
+        /**
+         * KATHY'S GARDEN ENGINE v2.0
+         * Optimized for Render.com Static Sites
+         * Uses HTML5 Canvas for GPU accelerated graphics
+         */
 
-            // 1. GENERADOR DE PLANTAS FICTICIAS (SVG)
-            // Creamos 3 tipos de plantas "alienígenas/hágicas"
-            const plantTypes = [
-                // Tipo 1: Helecho Neón
-                `<svg width="60" height="150" viewBox="0 0 60 150" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M30 150 Q5 100 30 50 Q55 20 30 0" stroke="url(#grad1)" stroke-width="2" fill="none"/>
-                    <circle cx="30" cy="0" r="3" fill="#fff" filter="url(#glow)"/>
-                    <path d="M30 120 Q10 100 30 80" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
-                    <path d="M30 120 Q50 100 30 80" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
-                 </svg>`,
-                
-                // Tipo 2: Hongo Mágico
-                `<svg width="50" height="100" viewBox="0 0 50 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="22" y="50" width="6" height="50" fill="#ddd" rx="3"/>
-                    <path d="M5 50 C5 20 25 0 25 0 C25 0 45 20 45 50 Z" fill="url(#grad2)" filter="url(#glow)"/>
-                    <circle cx="15" cy="30" r="2" fill="white" opacity="0.6"/>
-                    <circle cx="35" cy="40" r="1.5" fill="white" opacity="0.6"/>
-                 </svg>`,
-                 
-                // Tipo 3: Cristal Floral
-                `<svg width="40" height="120" viewBox="0 0 40 120" fill="none">
-                    <line x1="20" y1="120" x2="20" y2="40" stroke="#888" stroke-width="2"/>
-                    <polygon points="20,10 30,30 20,50 10,30" fill="url(#grad3)" filter="url(#glow)"/>
-                 </svg>`
-            ];
+        const canvas = document.getElementById('world');
+        const ctx = canvas.getContext('2d');
 
-            // Definiciones de SVG (Gradientes y filtros) que inyectamos una vez
-            const defs = `
-                <svg width="0" height="0">
-                    <defs>
-                        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-                            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                        <linearGradient id="grad1" x1="0%" y1="100%" x2="0%" y2="0%">
-                            <stop offset="0%" style="stop-color:#000;stop-opacity:0" />
-                            <stop offset="100%" style="stop-color:#00ff9d;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="grad2" x1="0%" y1="100%" x2="0%" y2="0%">
-                            <stop offset="0%" style="stop-color:#2a003b;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff00cc;stop-opacity:1" />
-                        </linearGradient>
-                         <linearGradient id="grad3" x1="0%" y1="100%" x2="0%" y2="0%">
-                            <stop offset="0%" style="stop-color:#00d2ff;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#fff;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                </svg>
-            `;
-            document.body.insertAdjacentHTML('afterbegin', defs);
+        let width, height;
+        let mouse = { x: 0, y: 0 };
+        let time = 0;
 
-            // Crear el jardín
-            const numberOfPlants = Math.floor(window.innerWidth / 30); // Densidad basada en ancho
-            
-            for (let i = 0; i < numberOfPlants; i++) {
-                const div = document.createElement('div');
-                div.classList.add('plant');
-                div.innerHTML = plantTypes[Math.floor(Math.random() * plantTypes.length)];
-                
-                // Estilos aleatorios
-                const size = 0.5 + Math.random() * 0.8; // Tamaño variable
-                const leftPos = Math.random() * 100; // Posición horizontal
-                const delay = Math.random() * 5; // Retraso de animación
-                const duration = 3 + Math.random() * 3; // Duración de movimiento
-                const blur = Math.random() < 0.2 ? '1px' : '0px'; // Profundidad de campo simulada
-                
-                div.style.left = `${leftPos}%`;
-                div.style.transform = `scale(${size})`;
-                div.style.filter = `blur(${blur})`;
-                div.style.zIndex = Math.floor(size * 10);
-                
-                // Asignar animación de balanceo
-                div.style.animation = `sway ${duration}s ease-in-out infinite alternate -${delay}s`;
+        // Configuration
+        const config = {
+            treeCount: 30,
+            flowerCount: 45,
+            fireflyCount: 60,
+            bgSpeed: 0.02, // Parallax intensity
+            windSpeed: 0.001
+        };
 
-                garden.appendChild(div);
-            }
+        // Resize handling
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
 
-            // 2. GENERADOR DE LUCIÉRNAGAS (Sistema de Partículas)
-            const fireflyCount = 40;
-            
-            for(let i=0; i<fireflyCount; i++){
-                const fly = document.createElement('div');
-                fly.classList.add('firefly');
-                
-                // Generar trayectoria aleatoria para CSS
-                const x1 = (Math.random() * 200 - 100) + 'px';
-                const y1 = (Math.random() * 200 - 100) + 'px';
-                const x2 = (Math.random() * 200 - 100) + 'px';
-                const y2 = (Math.random() * 200 - 100) + 'px';
-                const x3 = (Math.random() * 200 - 100) + 'px';
-                const y3 = (Math.random() * 200 - 100) + 'px';
-                
-                // Variables CSS
-                fly.style.setProperty('--x1', x1);
-                fly.style.setProperty('--y1', y1);
-                fly.style.setProperty('--x2', x2);
-                fly.style.setProperty('--y2', y2);
-                fly.style.setProperty('--x3', x3);
-                fly.style.setProperty('--y3', y3);
-                fly.style.setProperty('--xEnd', (Math.random() * 300 - 150) + 'px');
-                fly.style.setProperty('--yEnd', (Math.random() * 300 - 150) + 'px');
-
-                // Posición inicial y tamaño
-                fly.style.left = Math.random() * 100 + 'vw';
-                fly.style.top = Math.random() * 100 + 'vh';
-                const size = Math.random() * 3 + 1;
-                fly.style.width = size + 'px';
-                fly.style.height = size + 'px';
-                fly.style.animationDuration = (Math.random() * 10 + 10) + 's';
-                fly.style.animationDelay = (Math.random() * 5) + 's';
-                
-                // Color aleatorio
-                fly.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                fly.style.boxShadow = `0 0 10px ${fly.style.backgroundColor}`;
-
-                particlesContainer.appendChild(fly);
-            }
-
-            // 3. ORBES FLOTANTES (Fondo)
-            for(let i=0; i<15; i++){
-                const orb = document.createElement('div');
-                orb.classList.add('orb');
-                const size = Math.random() * 100 + 20;
-                orb.style.width = size + 'px';
-                orb.style.height = size + 'px';
-                orb.style.left = Math.random() * 100 + 'vw';
-                orb.style.animation = `floatUp ${Math.random() * 20 + 10}s linear infinite`;
-                orb.style.animationDelay = Math.random() * 10 + 's';
-                particlesContainer.appendChild(orb);
-            }
+        // Mouse interaction for Parallax
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = (e.clientX - width / 2) * 0.05; // Soften movement
+            mouse.y = (e.clientY - height / 2) * 0.05;
         });
+
+        // --- UTILS ---
+        const random = (min, max) => Math.random() * (max - min) + min;
+        
+        // --- CLASSES ---
+
+        class Firefly {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 2;
+                this.speedX = random(-0.5, 0.5);
+                this.speedY = random(-0.5, 0.5);
+                this.alpha = 0;
+                this.cycle = Math.random() * Math.PI * 2;
+                this.color = Math.random() > 0.5 ? '255, 220, 100' : '100, 255, 200'; // Gold or Cyan
+            }
+
+            update() {
+                this.x += this.speedX + Math.sin(time * 2) * 0.2;
+                this.y += this.speedY - 0.2; // Slowly float up
+                this.cycle += 0.05;
+                this.alpha = 0.5 + Math.sin(this.cycle) * 0.5; // Blink
+
+                // Reset if out of bounds
+                if (this.y < -10 || this.x > width + 10 || this.x < -10) {
+                    this.init();
+                    this.y = height + 10;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = `rgba(${this.color}, ${this.alpha})`;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = `rgba(${this.color}, 1)`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0; // Reset for performance
+            }
+        }
+
+        class BackgroundTree {
+            constructor(layer) {
+                this.layer = layer; // 1 = far (foggy), 3 = close (dark)
+                this.x = Math.random() * width;
+                this.y = height;
+                this.width = random(20, 80) * layer;
+                this.height = random(height * 0.4, height * 0.8) * (layer * 0.5);
+                this.swaySpeed = random(0.5, 1.5);
+                this.swayOffset = random(0, Math.PI * 2);
+            }
+
+            draw() {
+                // Parallax effect based on layer
+                const parallaxX = mouse.x * this.layer;
+                
+                // Swaying
+                const sway = Math.sin(time * this.swaySpeed + this.swayOffset) * 5 * this.layer;
+
+                ctx.save();
+                ctx.translate(this.x - parallaxX, this.y);
+
+                // Color based on layer depth (Fog effect)
+                // Far = lighter/bluer (fog), Close = Darker/blacker
+                if(this.layer === 1) ctx.fillStyle = '#1a1a2e';
+                else if(this.layer === 2) ctx.fillStyle = '#101024';
+                else ctx.fillStyle = '#050510';
+
+                ctx.beginPath();
+                // Simple silhouette tree shape (triangle-ish with curves)
+                ctx.moveTo(-this.width / 2, 0);
+                ctx.quadraticCurveTo(0, -this.height * 0.5, sway, -this.height);
+                ctx.quadraticCurveTo(0, -this.height * 0.5, this.width / 2, 0);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class FairyFlower {
+            constructor() {
+                this.x = random(0, width);
+                this.height = random(100, 300);
+                this.color = `hsl(${random(280, 340)}, 80%, 60%)`; // Pinks and Purples
+                this.swaySpeed = random(1, 2);
+                this.phase = random(0, Math.PI * 2);
+            }
+
+            draw() {
+                const parallaxX = mouse.x * 4; // Moves most
+                const tipSway = Math.sin(time * this.swaySpeed + this.phase) * 20;
+
+                const baseX = this.x - parallaxX;
+                const tipX = baseX + tipSway + (mouse.x * 0.5); // Reacts to mouse
+                const tipY = height - this.height;
+
+                // Draw Stem
+                ctx.strokeStyle = '#2a4a3b';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(baseX, height);
+                // Bezier for organic curve
+                ctx.quadraticCurveTo(baseX, height - this.height / 2, tipX, tipY);
+                ctx.stroke();
+
+                // Draw Glowing Bulb
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = '#fff';
+                
+                ctx.beginPath();
+                ctx.arc(tipX, tipY, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Petals
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(tipX, tipY - 5, 3, 8, Math.PI / 4, 0, Math.PI * 2);
+                ctx.ellipse(tipX, tipY - 5, 3, 8, -Math.PI / 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.shadowBlur = 0; // Reset
+            }
+        }
+
+        // --- INIT ---
+        const trees = [];
+        const flowers = [];
+        const fireflies = [];
+
+        function initWorld() {
+            // Create layered forest
+            for(let i=0; i<config.treeCount; i++) {
+                const layer = Math.random() < 0.5 ? 1 : (Math.random() < 0.5 ? 2 : 3);
+                trees.push(new BackgroundTree(layer));
+            }
+            // Sort trees so layer 1 is drawn first (back)
+            trees.sort((a, b) => a.layer - b.layer);
+
+            // Create flowers
+            for(let i=0; i<config.flowerCount; i++) {
+                flowers.push(new FairyFlower());
+            }
+
+            // Create fireflies
+            for(let i=0; i<config.fireflyCount; i++) {
+                fireflies.push(new Firefly());
+            }
+        }
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            // 1. Clear Screen with slight fade for trails (optional, but pure clear is cleaner here)
+            // Creating a gradient background sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, '#020014'); // Deep Space
+            gradient.addColorStop(1, '#1b1b2f'); // Horizon
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+
+            time += config.windSpeed;
+
+            // 2. Draw Moon/Glow (Static background element)
+            ctx.fillStyle = 'rgba(200, 220, 255, 0.05)';
+            ctx.beginPath();
+            ctx.arc(width * 0.8 - mouse.x * 0.1, height * 0.2 - mouse.y * 0.1, 100, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 3. Draw Trees (Back to Front)
+            trees.forEach(tree => tree.draw());
+
+            // 4. Draw Ground Mist
+            const mistGrad = ctx.createLinearGradient(0, height - 100, 0, height);
+            mistGrad.addColorStop(0, 'rgba(0,0,0,0)');
+            mistGrad.addColorStop(1, 'rgba(0, 20, 40, 0.8)');
+            ctx.fillStyle = mistGrad;
+            ctx.fillRect(0, height - 150, width, 150);
+
+            // 5. Draw Flowers (Foreground)
+            flowers.forEach(flower => flower.draw());
+
+            // 6. Draw Fireflies
+            fireflies.forEach(fly => {
+                fly.update();
+                fly.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        initWorld();
+        animate();
+
     </script>
 </body>
 </html>
