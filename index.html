@@ -1,337 +1,267 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kathy's Garden | Ethereal Realm</title>
+    <title>Kathy's Garden | 3D Realm</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300&display=swap');
-
-        :root {
-            --text-glow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 0, 200, 0.4);
-        }
-
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #050510; /* Fallback */
-        }
-
-        canvas {
-            display: block;
+        body { margin: 0; overflow: hidden; background-color: #000; }
+        
+        /* Capa de Texto (UI) */
+        #ui {
             position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-
-        /* UI Layer */
-        .ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none; /* Click traspasa al 3D */
             z-index: 10;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            pointer-events: none; /* Allows mouse through to canvas */
-            background: radial-gradient(circle at center, transparent 0%, #000000 150%);
+            font-family: 'Courier New', Courier, monospace; /* Fallback */
         }
+        
+        /* Importamos fuentes bonitas */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Quicksand:wght@300&display=swap');
 
         h1 {
-            font-family: 'Cinzel', serif;
-            font-size: 6vw;
-            color: rgba(255, 255, 255, 0.95);
-            text-transform: uppercase;
-            letter-spacing: 12px;
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 5rem;
+            color: #fff;
             margin: 0;
-            text-shadow: var(--text-glow);
-            opacity: 0;
-            animation: fadeIn 3s ease-out forwards 1s;
+            text-shadow: 0 0 30px rgba(255, 0, 200, 0.8), 0 0 60px rgba(0, 200, 255, 0.6);
+            letter-spacing: 5px;
+            animation: pulse 4s infinite ease-in-out;
         }
 
         p {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1.2rem;
+            font-family: 'Quicksand', sans-serif;
             color: #aaddff;
-            letter-spacing: 6px;
-            margin-top: 20px;
-            opacity: 0;
-            animation: fadeIn 3s ease-out forwards 2s;
-            text-shadow: 0 0 5px #00d2ff;
+            font-size: 1.2rem;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            opacity: 0.8;
         }
 
-        /* Vignette effect via CSS for better performance than Canvas */
-        .vignette {
+        /* Pequeña animación del texto */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.98); }
+        }
+
+        /* Cargando... */
+        #loader {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle, transparent 40%, black 120%);
-            z-index: 5;
-            pointer-events: none;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Mobile adjustments */
-        @media (max-width: 768px) {
-            h1 { font-size: 3rem; letter-spacing: 5px; }
-            p { font-size: 0.9rem; }
+            bottom: 20px;
+            right: 20px;
+            color: white;
+            font-family: sans-serif;
+            font-size: 0.8rem;
+            opacity: 0.5;
         }
     </style>
+    
+    <!-- Mapa de importación para que el navegador sepa dónde buscar Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
 </head>
 <body>
 
-    <div class="vignette"></div>
-    
-    <div class="ui-layer">
+    <div id="ui">
         <h1>Kathy's Garden</h1>
-        <p>THE ETERNAL SANCTUARY</p>
+        <p>A Digital Sanctuary</p>
     </div>
+    <div id="loader">Generando ecosistema 3D...</div>
 
-    <canvas id="world"></canvas>
+    <!-- El script principal del 3D -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-    <script>
-        /**
-         * KATHY'S GARDEN ENGINE v2.0
-         * Optimized for Render.com Static Sites
-         * Uses HTML5 Canvas for GPU accelerated graphics
-         */
+        // 1. ESCENA Y CÁMARA
+        const scene = new THREE.Scene();
+        // Niebla densa para ocultar el horizonte y dar atmósfera mística
+        scene.fog = new THREE.FogExp2(0x050510, 0.035); 
 
-        const canvas = document.getElementById('world');
-        const ctx = canvas.getContext('2d');
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 1.5, 5);
 
-        let width, height;
-        let mouse = { x: 0, y: 0 };
-        let time = 0;
+        const renderer = new THREE.WebGLRenderer({ antialias: false }); // Bloom se encarga del suavizado
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+        document.body.appendChild(renderer.domElement);
 
-        // Configuration
-        const config = {
-            treeCount: 30,
-            flowerCount: 45,
-            fireflyCount: 60,
-            bgSpeed: 0.02, // Parallax intensity
-            windSpeed: 0.001
-        };
+        // 2. POST-PROCESADO (EL EFECTO GLOW/BLOOM)
+        const renderScene = new RenderPass(scene, camera);
+        
+        // Configuración del Brillo (Bloom)
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0;   // Qué tan brillante debe ser algo para brillar (0 = todo brilla un poco)
+        bloomPass.strength = 2.0;  // Intensidad del brillo (Muy alto para efecto mágico)
+        bloomPass.radius = 0.5;    // Radio de dispersión
 
-        // Resize handling
-        function resize() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
+        const composer = new EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
 
-        // Mouse interaction for Parallax
-        window.addEventListener('mousemove', (e) => {
-            mouse.x = (e.clientX - width / 2) * 0.05; // Soften movement
-            mouse.y = (e.clientY - height / 2) * 0.05;
+        // 3. CREACIÓN DEL MUNDO (PROCEDURAL)
+        
+        // Materiales
+        const groundMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x111111, 
+            roughness: 0.4, 
+            metalness: 0.6 
         });
 
-        // --- UTILS ---
-        const random = (min, max) => Math.random() * (max - min) + min;
-        
-        // --- CLASSES ---
+        // Suelo (Plano infinito simulado)
+        const plane = new THREE.Mesh(new THREE.PlaneGeometry(200, 200, 64, 64), groundMaterial);
+        plane.rotation.x = -Math.PI / 2;
+        // Creamos montañas suaves moviendo vértices
+        const posAttribute = plane.geometry.attributes.position;
+        for ( let i = 0; i < posAttribute.count; i ++ ) {
+            const z = posAttribute.getZ( i );
+            // Ruido aleatorio para el terreno
+            posAttribute.setZ( i, z + Math.random() * 1.5 ); 
+        }
+        scene.add(plane);
 
-        class Firefly {
-            constructor() {
-                this.init();
-            }
+        // Generador de Árboles abstractos (Cristales)
+        const treeGeometry = new THREE.ConeGeometry(0.2, 1, 4, 1);
+        const treeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff }); // Cian base
+        const treeCount = 400;
 
-            init() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.size = Math.random() * 2;
-                this.speedX = random(-0.5, 0.5);
-                this.speedY = random(-0.5, 0.5);
-                this.alpha = 0;
-                this.cycle = Math.random() * Math.PI * 2;
-                this.color = Math.random() > 0.5 ? '255, 220, 100' : '100, 255, 200'; // Gold or Cyan
-            }
+        const instancedTrees = new THREE.InstancedMesh(treeGeometry, treeMaterial, treeCount);
+        const dummy = new THREE.Object3D();
+        const colors = [];
 
-            update() {
-                this.x += this.speedX + Math.sin(time * 2) * 0.2;
-                this.y += this.speedY - 0.2; // Slowly float up
-                this.cycle += 0.05;
-                this.alpha = 0.5 + Math.sin(this.cycle) * 0.5; // Blink
+        for(let i=0; i<treeCount; i++) {
+            // Posición aleatoria
+            const x = (Math.random() - 0.5) * 60;
+            const z = (Math.random() - 0.5) * 60 - 10; // Más hacia atrás
+            
+            // Escalado aleatorio (altos y delgados)
+            const s = Math.random() * 0.5 + 0.5; 
+            const h = Math.random() * 5 + 2;
+            
+            dummy.position.set(x, h/2 - 0.5, z);
+            dummy.scale.set(s, h, s);
+            dummy.rotation.y = Math.random() * Math.PI;
+            dummy.updateMatrix();
+            instancedTrees.setMatrixAt(i, dummy.matrix);
 
-                // Reset if out of bounds
-                if (this.y < -10 || this.x > width + 10 || this.x < -10) {
-                    this.init();
-                    this.y = height + 10;
-                }
-            }
+            // Colores Neon aleatorios por árbol
+            const color = new THREE.Color();
+            // Mezcla entre azul, morado y magenta
+            color.setHSL(Math.random() * 0.2 + 0.5, 0.9, 0.5); 
+            instancedTrees.setColorAt(i, color);
+        }
+        scene.add(instancedTrees);
 
-            draw() {
-                ctx.fillStyle = `rgba(${this.color}, ${this.alpha})`;
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = `rgba(${this.color}, 1)`;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0; // Reset for performance
-            }
+        // 4. LUCIÉRNAGAS (SISTEMA DE PARTÍCULAS)
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 1500;
+        const posArray = new Float32Array(particlesCount * 3);
+        const randomArray = new Float32Array(particlesCount); // Para animaciones individuales
+
+        for(let i = 0; i < particlesCount * 3; i+=3) {
+            posArray[i] = (Math.random() - 0.5) * 50;     // X
+            posArray[i+1] = Math.random() * 10;           // Y (Altura)
+            posArray[i+2] = (Math.random() - 0.5) * 50 - 5; // Z
+            
+            randomArray[i/3] = Math.random(); // Fase aleatoria
         }
 
-        class BackgroundTree {
-            constructor(layer) {
-                this.layer = layer; // 1 = far (foggy), 3 = close (dark)
-                this.x = Math.random() * width;
-                this.y = height;
-                this.width = random(20, 80) * layer;
-                this.height = random(height * 0.4, height * 0.8) * (layer * 0.5);
-                this.swaySpeed = random(0.5, 1.5);
-                this.swayOffset = random(0, Math.PI * 2);
-            }
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particlesGeometry.setAttribute('aRandom', new THREE.BufferAttribute(randomArray, 1));
 
-            draw() {
-                // Parallax effect based on layer
-                const parallaxX = mouse.x * this.layer;
-                
-                // Swaying
-                const sway = Math.sin(time * this.swaySpeed + this.swayOffset) * 5 * this.layer;
+        // Material de partículas personalizado
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.08,
+            color: 0xffffee, // Blanco dorado
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
 
-                ctx.save();
-                ctx.translate(this.x - parallaxX, this.y);
+        const fireflies = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(fireflies);
 
-                // Color based on layer depth (Fog effect)
-                // Far = lighter/bluer (fog), Close = Darker/blacker
-                if(this.layer === 1) ctx.fillStyle = '#1a1a2e';
-                else if(this.layer === 2) ctx.fillStyle = '#101024';
-                else ctx.fillStyle = '#050510';
+        // 5. ILUMINACIÓN
+        const ambientLight = new THREE.AmbientLight(0x404040, 2); // Luz base tenue
+        scene.add(ambientLight);
 
-                ctx.beginPath();
-                // Simple silhouette tree shape (triangle-ish with curves)
-                ctx.moveTo(-this.width / 2, 0);
-                ctx.quadraticCurveTo(0, -this.height * 0.5, sway, -this.height);
-                ctx.quadraticCurveTo(0, -this.height * 0.5, this.width / 2, 0);
-                ctx.fill();
-                ctx.restore();
-            }
-        }
+        // Luces puntuales de colores (Magia)
+        const light1 = new THREE.PointLight(0xff00ff, 2, 20); // Magenta
+        light1.position.set(5, 5, 5);
+        scene.add(light1);
 
-        class FairyFlower {
-            constructor() {
-                this.x = random(0, width);
-                this.height = random(100, 300);
-                this.color = `hsl(${random(280, 340)}, 80%, 60%)`; // Pinks and Purples
-                this.swaySpeed = random(1, 2);
-                this.phase = random(0, Math.PI * 2);
-            }
+        const light2 = new THREE.PointLight(0x00ffff, 2, 20); // Cian
+        light2.position.set(-5, 5, -5);
+        scene.add(light2);
 
-            draw() {
-                const parallaxX = mouse.x * 4; // Moves most
-                const tipSway = Math.sin(time * this.swaySpeed + this.phase) * 20;
 
-                const baseX = this.x - parallaxX;
-                const tipX = baseX + tipSway + (mouse.x * 0.5); // Reacts to mouse
-                const tipY = height - this.height;
+        // 6. ANIMACIÓN E INTERACCIÓN
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
 
-                // Draw Stem
-                ctx.strokeStyle = '#2a4a3b';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(baseX, height);
-                // Bezier for organic curve
-                ctx.quadraticCurveTo(baseX, height - this.height / 2, tipX, tipY);
-                ctx.stroke();
+        const windowHalfX = window.innerWidth / 2;
+        const windowHalfY = window.innerHeight / 2;
 
-                // Draw Glowing Bulb
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = this.color;
-                ctx.fillStyle = '#fff';
-                
-                ctx.beginPath();
-                ctx.arc(tipX, tipY, 4, 0, Math.PI * 2);
-                ctx.fill();
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX - windowHalfX) * 0.001;
+            mouseY = (event.clientY - windowHalfY) * 0.001;
+        });
 
-                // Petals
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.ellipse(tipX, tipY - 5, 3, 8, Math.PI / 4, 0, Math.PI * 2);
-                ctx.ellipse(tipX, tipY - 5, 3, 8, -Math.PI / 4, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.shadowBlur = 0; // Reset
-            }
-        }
+        const clock = new THREE.Clock();
 
-        // --- INIT ---
-        const trees = [];
-        const flowers = [];
-        const fireflies = [];
-
-        function initWorld() {
-            // Create layered forest
-            for(let i=0; i<config.treeCount; i++) {
-                const layer = Math.random() < 0.5 ? 1 : (Math.random() < 0.5 ? 2 : 3);
-                trees.push(new BackgroundTree(layer));
-            }
-            // Sort trees so layer 1 is drawn first (back)
-            trees.sort((a, b) => a.layer - b.layer);
-
-            // Create flowers
-            for(let i=0; i<config.flowerCount; i++) {
-                flowers.push(new FairyFlower());
-            }
-
-            // Create fireflies
-            for(let i=0; i<config.fireflyCount; i++) {
-                fireflies.push(new Firefly());
-            }
-        }
-
-        // --- ANIMATION LOOP ---
         function animate() {
-            // 1. Clear Screen with slight fade for trails (optional, but pure clear is cleaner here)
-            // Creating a gradient background sky
-            const gradient = ctx.createLinearGradient(0, 0, 0, height);
-            gradient.addColorStop(0, '#020014'); // Deep Space
-            gradient.addColorStop(1, '#1b1b2f'); // Horizon
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, width, height);
+            const time = clock.getElapsedTime();
 
-            time += config.windSpeed;
+            // Movimiento suave de cámara
+            targetX = mouseX * 2;
+            targetY = mouseY * 2;
+            
+            camera.position.x += (targetX - camera.position.x) * 0.05;
+            camera.position.y += (-targetY - camera.position.y + 2) * 0.05; // +2 base height
+            camera.lookAt(0, 1, 0);
 
-            // 2. Draw Moon/Glow (Static background element)
-            ctx.fillStyle = 'rgba(200, 220, 255, 0.05)';
-            ctx.beginPath();
-            ctx.arc(width * 0.8 - mouse.x * 0.1, height * 0.2 - mouse.y * 0.1, 100, 0, Math.PI * 2);
-            ctx.fill();
+            // Animar Luciérnagas (Ondulación vertical y horizontal)
+            const positions = fireflies.geometry.attributes.position.array;
+            for(let i=0; i<particlesCount; i++) {
+                const i3 = i*3;
+                // Movimiento orgánico basado en tiempo y posición original
+                positions[i3 + 1] += Math.sin(time * 0.5 + positions[i3]) * 0.005; // Y
+                positions[i3] += Math.cos(time * 0.3 + positions[i3+1]) * 0.005;   // X
+            }
+            fireflies.geometry.attributes.position.needsUpdate = true;
 
-            // 3. Draw Trees (Back to Front)
-            trees.forEach(tree => tree.draw());
+            // Rotación leve del bosque
+            instancedTrees.rotation.y = Math.sin(time * 0.05) * 0.05;
 
-            // 4. Draw Ground Mist
-            const mistGrad = ctx.createLinearGradient(0, height - 100, 0, height);
-            mistGrad.addColorStop(0, 'rgba(0,0,0,0)');
-            mistGrad.addColorStop(1, 'rgba(0, 20, 40, 0.8)');
-            ctx.fillStyle = mistGrad;
-            ctx.fillRect(0, height - 150, width, 150);
-
-            // 5. Draw Flowers (Foreground)
-            flowers.forEach(flower => flower.draw());
-
-            // 6. Draw Fireflies
-            fireflies.forEach(fly => {
-                fly.update();
-                fly.draw();
-            });
-
+            // Renderizar con el efecto Bloom
+            composer.render();
             requestAnimationFrame(animate);
         }
 
-        initWorld();
-        animate();
+        // Ajuste de ventana
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
 
+        document.getElementById('loader').style.display = 'none';
+        animate();
     </script>
 </body>
 </html>
