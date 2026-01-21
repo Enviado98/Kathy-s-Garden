@@ -3,161 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kathy's Garden Interactive</title>
+    <title>Kathy's Garden Ultimate</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;500&display=swap');
 
+        /* --- RESET & BASE --- */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #1a251a; touch-action: none; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #050505; touch-action: none; font-family: 'Quicksand', sans-serif; }
 
-        /* --- ESCENA --- */
         #scene {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100dvh;
+            width: 100%; height: 100dvh;
             overflow: hidden;
-            transition: background-color 1s ease;
         }
 
-        /* --- IMAGEN DE FONDO --- */
+        /* --- FONDO --- */
         .bg-image {
             position: absolute;
             top: -5%; left: -5%; width: 110%; height: 110%;
-            background-image: url('fondo.jpg'); /* TU IMAGEN */
+            background-image: url('fondo.jpg'); /* TU FOTO */
             background-size: cover;
             background-position: center bottom;
-            background-repeat: no-repeat;
             z-index: 1;
-            /* Transición suave para cambiar de color día/noche */
-            transition: filter 1.5s ease; 
-            animation: breathe 12s ease-in-out infinite alternate;
+            transition: all 2s ease; /* Transición lenta para cambio de clima */
+            animation: breathe 15s ease-in-out infinite alternate;
         }
 
-        /* --- CLASES DE CLIMA (Modifican el fondo) --- */
+        /* --- ESTADOS DEL CLIMA (Filtros al Fondo) --- */
+        /* Día (Default): Normal */
         
-        /* Estado por defecto (Día): Sin filtros extra */
-        
-        /* Estado Lluvia: Menos color, más frío */
+        /* Lluvia: Muy oscuro, desaturado, frío */
         .mode-rain .bg-image {
-            filter: grayscale(0.4) brightness(0.9) hue-rotate(10deg);
+            filter: brightness(0.3) grayscale(0.7) contrast(1.1) hue-rotate(10deg);
+            transform: scale(1.02); /* Menos zoom para sensación de presión */
         }
 
-        /* Estado Noche: Oscuro, azulado, alto contraste */
+        /* Noche: Oscuro, azul profundo, alto contraste */
         .mode-night .bg-image {
-            filter: brightness(0.4) contrast(1.2) hue-rotate(20deg) grayscale(0.2);
+            filter: brightness(0.2) grayscale(0.4) contrast(1.3) hue-rotate(15deg) sepia(0.3) saturate(1.5) hue-rotate(180deg); 
+            /* El filtro de noche es complejo para dar el tono azul mágico */
+            filter: brightness(0.25) contrast(1.2) grayscale(0.3) drop-shadow(0 0 0 blue); /* Simplificado para mejor soporte */
         }
 
-        /* --- CAPAS DE LUZ --- */
+        /* --- CAPAS ATMOSFÉRICAS --- */
+        
+        /* 1. RAYOS DE SOL (Solo Día) */
         .sun-beams {
             position: absolute;
-            top: -50%; right: -20%; width: 100%; height: 150%;
-            background: radial-gradient(circle at 100% 0%, rgba(255, 255, 200, 0.3) 0%, transparent 60%);
-            transform: rotate(-15deg);
-            pointer-events: none;
+            top: -50%; right: -20%; width: 150%; height: 150%;
+            background: radial-gradient(circle at 50% 0%, rgba(255, 250, 200, 0.4) 0%, transparent 60%);
+            transform: rotate(-20deg);
             mix-blend-mode: overlay;
-            z-index: 2;
-            transition: opacity 1s ease;
+            pointer-events: none; z-index: 2;
+            opacity: 1;
+            transition: opacity 1.5s ease;
         }
 
-        /* Ocultar rayos de sol en lluvia y noche */
-        .mode-rain .sun-beams, 
-        .mode-night .sun-beams {
-            opacity: 0; 
+        /* 2. LUZ DE LUNA (Solo Noche) */
+        .moon-glow {
+            position: absolute;
+            top: -20%; left: 20%; width: 100%; height: 80%;
+            background: radial-gradient(circle at 50% 0%, rgba(100, 200, 255, 0.5) 0%, transparent 70%);
+            mix-blend-mode: screen;
+            pointer-events: none; z-index: 2;
+            opacity: 0; /* Oculto por defecto */
+            transition: opacity 1.5s ease;
         }
 
-        .vignette {
+        /* 3. NIEBLA (Fog) - Se usa en Día y Noche con diferente color */
+        .fog-container {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.6) 120%);
             z-index: 3;
+            opacity: 0;
             pointer-events: none;
+            transition: opacity 2s ease;
+            mix-blend-mode: screen;
+        }
+        
+        /* Generamos nubes con CSS Gradient */
+        .fog-layer {
+            position: absolute;
+            top: 0; left: 0; width: 200%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0%, transparent 40%),
+                        radial-gradient(circle at 20% 40%, rgba(255,255,255,0.05) 0%, transparent 30%);
+            background-size: 50% 100%;
+            animation: fogMove 60s linear infinite;
         }
 
+        /* 4. FLASH DE TRUENO */
+        .thunder-flash {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #fff;
+            opacity: 0;
+            z-index: 50; /* Por encima de todo */
+            pointer-events: none;
+            mix-blend-mode: overlay;
+        }
+
+        /* --- VISIBILIDAD SEGÚN MODO --- */
+        .mode-rain .sun-beams { opacity: 0; }
+        .mode-rain .moon-glow { opacity: 0; }
+        .mode-rain .fog-container { opacity: 0.2; } /* Poca niebla en lluvia */
+
+        .mode-night .sun-beams { opacity: 0; }
+        .mode-night .moon-glow { opacity: 0.8; }
+        .mode-night .fog-container { opacity: 0.6; } /* Mucha niebla en noche */
+        .mode-night .fog-layer { background: radial-gradient(circle at 50% 50%, rgba(150, 220, 255, 0.15) 0%, transparent 50%); }
+
+        /* --- CANVAS --- */
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
 
-        /* --- UI (TEXTO) --- */
-        .ui-layer {
+        /* --- UI (TEXTO & BOTONES) --- */
+        .ui-container {
             position: absolute;
-            top: 10%; /* Lo subí un poco para dejar espacio a los botones */
+            bottom: 40px;
             width: 100%;
-            text-align: center;
-            z-index: 20;
-            pointer-events: none;
-            transition: opacity 0.5s;
-        }
-        h1 { font-family: 'Fredoka', sans-serif; color: white; font-size: 2rem; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
-        p { font-family: 'Fredoka', sans-serif; color: #ffdcb8; font-size: 0.9rem; letter-spacing: 2px; text-shadow: 0 1px 5px rgba(0,0,0,0.8); }
-
-        /* --- BOTONES DE CONTROL --- */
-        .controls {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
             display: flex;
-            gap: 15px;
-            z-index: 30;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 10px 20px;
-            border-radius: 30px;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.2);
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        h1 {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            margin-bottom: 5px;
+            opacity: 0.8;
+        }
+
+        /* CÁPSULA DE BOTONES (Minimalista) */
+        .glass-controls {
+            display: flex;
+            background: rgba(20, 20, 20, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 8px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            gap: 5px;
         }
 
         .btn {
-            background: none;
+            background: transparent;
             border: none;
-            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
             cursor: pointer;
-            transition: transform 0.2s, filter 0.2s;
-            filter: grayscale(1); /* Desactivados se ven grises */
-            opacity: 0.7;
+            font-size: 1.2rem;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
+        .btn:hover { background: rgba(255,255,255,0.05); color: white; }
+        
         .btn.active {
-            filter: grayscale(0); /* El activo tiene color */
-            transform: scale(1.2);
-            opacity: 1;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+            transform: scale(1.05);
         }
 
-        /* Animación fondo */
+        /* --- ANIMACIONES --- */
         @keyframes breathe { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
+        @keyframes fogMove { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        
+        /* Animación del rayo (Flash) */
+        @keyframes flashAnim {
+            0% { opacity: 0; }
+            10% { opacity: 0.8; }
+            20% { opacity: 0; }
+            30% { opacity: 0.4; }
+            100% { opacity: 0; }
+        }
 
     </style>
 </head>
 <body>
 
     <div id="scene">
+        <!-- Fondo -->
         <div class="bg-image"></div>
-        <div class="sun-beams"></div>
-        <div class="vignette"></div>
         
-        <div class="ui-layer">
-            <h1>Kathy's Garden</h1>
-            <p>Interactive World</p>
+        <!-- Capas de luz y niebla -->
+        <div class="sun-beams"></div>
+        <div class="moon-glow"></div>
+        
+        <div class="fog-container">
+            <div class="fog-layer"></div>
         </div>
 
-        <canvas id="magicDust"></canvas>
+        <div class="thunder-flash" id="flash"></div>
 
-        <!-- BOTONES DE CONTROL -->
-        <div class="controls">
-            <button class="btn active" onclick="setWeather('sun')" title="Día">☀️</button>
-            <button class="btn" onclick="setWeather('rain')" title="Lluvia">🌧️</button>
-            <button class="btn" onclick="setWeather('night')" title="Noche">🌙</button>
+        <!-- Partículas -->
+        <canvas id="canvas"></canvas>
+
+        <!-- UI -->
+        <div class="ui-container">
+            <div style="text-align:center">
+                <h1>Kathy's Garden</h1>
+            </div>
+
+            <div class="glass-controls">
+                <button class="btn active" onclick="setMode('sun')" aria-label="Día">☀️</button>
+                <button class="btn" onclick="setMode('rain')" aria-label="Lluvia">⛈️</button>
+                <button class="btn" onclick="setMode('night')" aria-label="Noche">🌙</button>
+            </div>
         </div>
     </div>
 
     <script>
-        const scene = document.getElementById('scene');
-        const canvas = document.getElementById('magicDust');
+        const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        let w, h;
+        const scene = document.getElementById('scene');
+        const flashOverlay = document.getElementById('flash');
         
-        // Estado actual: 'sun', 'rain', 'night'
-        let weatherMode = 'sun'; 
-        const particles = [];
-        const particleCount = 60;
+        let w, h;
+        let mode = 'sun';
+        let particles = [];
+        let animationId;
+        
+        // Configuración de partículas
+        const config = {
+            count: 80,
+            rainSpeed: 15,
+            windStrength: -5 // Viento hacia la izquierda
+        };
 
-        // Resize
         function resize() {
             w = canvas.width = window.innerWidth;
             h = canvas.height = window.innerHeight;
@@ -165,27 +247,45 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // --- LÓGICA DE CLIMA ---
-        function setWeather(mode) {
-            weatherMode = mode;
+        // --- MODO Y CLIMA ---
+        function setMode(newMode) {
+            mode = newMode;
             
-            // 1. Cambiar Clases CSS (Fondo)
-            scene.className = ''; // Limpiar
+            // UI
+            document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+            if(mode === 'sun') document.querySelector('button[aria-label="Día"]').classList.add('active');
+            if(mode === 'rain') document.querySelector('button[aria-label="Lluvia"]').classList.add('active');
+            if(mode === 'night') document.querySelector('button[aria-label="Noche"]').classList.add('active');
+
+            // CSS Classes
+            scene.className = '';
             if(mode === 'rain') scene.classList.add('mode-rain');
             if(mode === 'night') scene.classList.add('mode-night');
 
-            // 2. Actualizar botones visualmente
-            document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
-            // Activar el botón clickeado (truco para encontrar cuál fue sin pasar 'this')
-            if(mode === 'sun') document.querySelector('button[title="Día"]').classList.add('active');
-            if(mode === 'rain') document.querySelector('button[title="Lluvia"]').classList.add('active');
-            if(mode === 'night') document.querySelector('button[title="Noche"]').classList.add('active');
-
-            // 3. Reiniciar partículas para cambiar su comportamiento inmediatamente
-            particles.forEach(p => p.init());
+            // Reiniciar partículas
+            initParticles();
         }
 
-        // --- SISTEMA DE PARTÍCULAS ---
+        // --- SISTEMA DE TRUENOS (Solo Lluvia) ---
+        function thunderLoop() {
+            if(mode === 'rain') {
+                // Probabilidad de trueno
+                if(Math.random() > 0.98) {
+                    triggerThunder();
+                }
+            }
+            setTimeout(thunderLoop, 500); // Chequear cada medio segundo
+        }
+        
+        function triggerThunder() {
+            // Reproducir animación CSS
+            flashOverlay.style.animation = 'none';
+            flashOverlay.offsetHeight; /* trigger reflow */
+            flashOverlay.style.animation = 'flashAnim 0.6s linear';
+        }
+        thunderLoop(); // Iniciar loop
+
+        // --- CLASE PARTÍCULA ---
         class Particle {
             constructor() {
                 this.init();
@@ -194,90 +294,93 @@
             init() {
                 this.x = Math.random() * w;
                 this.y = Math.random() * h;
-                this.size = Math.random() * 2 + 0.5;
-                this.alpha = Math.random();
                 
-                // Configuración inicial según clima
-                if (weatherMode === 'sun') {
-                    this.vx = (Math.random() - 0.5) * 0.3; // Flotar suave
-                    this.vy = (Math.random() - 0.5) * 0.3;
-                    this.color = '255, 255, 220'; // Dorado claro
+                if (mode === 'sun') {
+                    this.vx = (Math.random() - 0.5) * 0.5;
+                    this.vy = (Math.random() - 0.5) * 0.5;
+                    this.size = Math.random() * 2 + 0.5;
+                    this.alpha = Math.random() * 0.6;
+                    this.color = '255, 255, 200'; // Dorado
                 } 
-                else if (weatherMode === 'rain') {
-                    this.x = Math.random() * w;
-                    this.y = Math.random() * -h; // Empezar arriba
-                    this.vx = 0; // Caer recto (o un poco inclinado)
-                    this.vy = Math.random() * 10 + 5; // Caída RÁPIDA
-                    this.size = Math.random() * 1.5; // Gotas finas
-                    this.color = '200, 220, 255'; // Azul claro
+                else if (mode === 'rain') {
+                    this.x = Math.random() * (w + 200); // Más ancho por el viento
+                    this.y = Math.random() * -h; 
+                    this.vx = config.windStrength + (Math.random() - 0.5); // Viento fuerte
+                    this.vy = config.rainSpeed + Math.random() * 5; // Caída rápida
+                    this.size = Math.random() * 1.5 + 0.5; // Gotas finas
+                    this.length = Math.random() * 15 + 10; // Largo de la gota
+                    this.color = '150, 180, 200'; // Gris azulado
+                    this.alpha = 0.5;
                 }
-                else if (weatherMode === 'night') {
-                    this.vx = (Math.random() - 0.5) * 1; // Movimiento más errático
-                    this.vy = (Math.random() - 0.5) * 1;
-                    this.size = Math.random() * 3 + 1; // Luciérnagas grandes
-                    // Color aleatorio: Verde, Amarillo o Cian
-                    const r = Math.random();
-                    if(r < 0.33) this.color = '255, 255, 100'; // Amarillo
-                    else if(r < 0.66) this.color = '100, 255, 100'; // Verde
-                    else this.color = '100, 255, 255'; // Cian
+                else if (mode === 'night') {
+                    this.vx = (Math.random() - 0.5) * 0.8;
+                    this.vy = (Math.random() - 0.5) * 0.8;
+                    this.size = Math.random() * 1.2 + 0.2; // Luciérnagas MUY pequeñas
+                    this.alpha = Math.random();
+                    this.color = '100, 255, 180'; // Verde/Cian neón
                 }
             }
 
             update() {
                 this.x += this.vx;
                 this.y += this.vy;
-                
-                // CICLOS DE VIDA
-                if (weatherMode === 'sun' || weatherMode === 'night') {
-                    // Titilar suave
-                    this.alpha += (Math.random() - 0.5) * 0.05;
-                    if(this.alpha < 0) this.alpha = 0;
-                    if(this.alpha > 1) this.alpha = 1;
-                    
-                    // Límites pantalla (rebotar o salir y entrar)
-                    if(this.x < 0) this.x = w;
-                    if(this.x > w) this.x = 0;
-                    if(this.y < 0) this.y = h;
-                    if(this.y > h) this.y = 0;
-                }
-                else if (weatherMode === 'rain') {
-                    // Reiniciar lluvia al tocar el suelo
+
+                // Límites y Comportamiento
+                if (mode === 'rain') {
                     if (this.y > h) {
                         this.y = -10;
-                        this.x = Math.random() * w;
+                        this.x = Math.random() * (w + 200); 
                     }
+                } else {
+                    // Sun & Night bounce/wrap
+                    if (this.x < 0) this.x = w;
+                    if (this.x > w) this.x = 0;
+                    if (this.y < 0) this.y = h;
+                    if (this.y > h) this.y = 0;
+
+                    // Titilar (Solo día y noche)
+                    this.alpha += (Math.random() - 0.5) * 0.05;
+                    if (this.alpha < 0) this.alpha = 0;
+                    if (this.alpha > 1) this.alpha = 1;
                 }
             }
 
             draw() {
                 ctx.beginPath();
                 
-                if (weatherMode === 'rain') {
-                    // Dibujar lluvia como líneas, no puntos
-                    ctx.strokeStyle = `rgba(${this.color}, 0.6)`;
+                if (mode === 'rain') {
+                    // Lluvia con viento (Líneas diagonales)
+                    ctx.strokeStyle = `rgba(${this.color}, ${this.alpha})`;
                     ctx.lineWidth = 1;
                     ctx.moveTo(this.x, this.y);
-                    ctx.lineTo(this.x, this.y + 10); // Cola de la gota
+                    ctx.lineTo(this.x + this.vx, this.y + this.length);
                     ctx.stroke();
                 } else {
-                    // Dibujar puntos con brillo (Sun/Night)
+                    // Puntos (Esporas / Luciérnagas)
                     ctx.fillStyle = `rgba(${this.color}, ${this.alpha})`;
                     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                     
-                    if(weatherMode === 'night') {
-                        ctx.shadowBlur = 10; // Más brillo de noche
+                    if (mode === 'night') {
+                        ctx.shadowBlur = 8;
                         ctx.shadowColor = `rgb(${this.color})`;
                     } else {
                         ctx.shadowBlur = 0;
                     }
                     ctx.fill();
-                    ctx.shadowBlur = 0; // Reset
+                    ctx.shadowBlur = 0;
                 }
             }
         }
 
-        // Crear partículas
-        for(let i=0; i<particleCount; i++) particles.push(new Particle());
+        function initParticles() {
+            particles = [];
+            let count = config.count;
+            if(mode === 'rain') count = 150; // Más cantidad si es lluvia
+            
+            for(let i=0; i<count; i++) {
+                particles.push(new Particle());
+            }
+        }
 
         function animate() {
             ctx.clearRect(0, 0, w, h);
@@ -288,7 +391,9 @@
             requestAnimationFrame(animate);
         }
 
+        initParticles();
         animate();
+
     </script>
 </body>
 </html>
