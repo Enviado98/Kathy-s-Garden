@@ -3,543 +3,742 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>The Gang - No Zoom</title>
+    <title>Organic Life AI</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
-        /* --- CORE SETUP ANTI-ZOOM & FLUIDITY --- */
+        /* --- 1. CORE & RESET (Anti-Zoom Militar) --- */
         :root {
-            --bg: #f0f0f5;
-            --c-purple: #7b2cbf;
-            --c-black: #212529;
-            --c-yellow: #ffd60a;
-            --c-orange: #ff9f1c;
+            --bg-color: #e8e8f0;
+            --purple: #6200ea;
+            --black: #1a1a1a;
+            --yellow: #ffd600;
+            --orange: #ff6d00;
+            --skin-shadow: rgba(0,0,0,0.15);
         }
 
-        html, body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden; /* Vital */
-            background-color: var(--bg);
-            font-family: sans-serif;
-            touch-action: none; /* Deshabilita gestos del navegador */
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* ESCENARIO */
-        .stage {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            height: 350px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            pointer-events: none; /* Click through to chars */
-        }
-
-        /* --- BASE CHARACTERS --- */
-        .char-wrapper {
-            position: absolute;
-            bottom: 20px;
-            pointer-events: auto; /* Enable touch */
-            will-change: transform;
-        }
-
-        .body-shape {
-            position: relative;
-            overflow: hidden; /* La cara se mueve DENTRO de esto */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* Contenedor de rasgos faciales que se desliza */
-        .face-container {
+        html, body {
+            width: 100%; height: 100%; margin: 0; padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: monospace;
+            touch-action: none; /* Bloqueo total de gestos */
+            user-select: none;
+            cursor: pointer;
+        }
+
+        /* --- 2. ESCENARIO (El Grupo) --- */
+        #stage {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -40%); /* Un poco más arriba para dejar espacio */
+            width: 300px; height: 300px;
+            /* Debug: border: 1px solid red; */
+        }
+
+        /* --- 3. ENTIDADES --- */
+        .char-container {
+            position: absolute;
+            will-change: transform;
+            transition: z-index 0s; /* Z-index instantáneo */
+        }
+
+        .body {
+            position: relative;
+            transform-origin: bottom center;
+            box-shadow: 0 10px 25px var(--skin-shadow);
+            overflow: hidden; /* Máscara para la cara */
+            transition: background 0.2s;
+        }
+
+        /* Capa de la cara (se mueve independientemente para efecto 3D falso) */
+        .face-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
         }
 
-        .eyes-row {
+        /* Ojos complejos */
+        .eye-socket {
             position: absolute;
-            width: 100%;
-            display: flex;
-            justify-content: space-evenly;
-            /* Top se define por JS/CSS específico */
-        }
-
-        .eye {
-            position: relative;
             background: white;
             border-radius: 50%;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
         }
 
         .pupil {
             position: absolute;
-            background: black;
+            background: #000;
             border-radius: 50%;
-            width: 40%;
-            height: 40%;
+            width: 40%; height: 40%;
+            top: 30%; left: 30%;
+            will-change: transform;
         }
 
-        .eyelid {
+        .eyelid-top, .eyelid-bottom {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 0%; /* 0 = abierto, 100 = cerrado */
-            background: inherit; /* Toma el color del cuerpo */
+            width: 100%; height: 0%;
+            background: inherit; /* Toma el color del padre */
             z-index: 10;
+            transition: height 0.1s ease-out;
         }
-        /* Color específico para párpados porque 'inherit' a veces falla con nesting complejo */
-        .char-purple .eyelid { background: var(--c-purple); }
-        .char-black .eyelid { background: var(--c-black); }
-        .char-yellow .eyelid { background: var(--c-yellow); }
-        .char-orange .eyelid { background: var(--c-orange); }
+        .eyelid-top { top: 0; }
+        .eyelid-bottom { bottom: 0; }
 
         .mouth {
             position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
             background: #222;
             border-radius: 10px;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
-        /* --- ESTILOS INDIVIDUALES --- */
-
-        /* 1. LIDER (Morado) - Rectángulo alto */
-        .char-purple .body-shape {
-            width: 110px;
-            height: 220px;
-            background: var(--c-purple);
-            border-radius: 15px;
+        /* Accesorios / Partículas */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
         }
-        .char-purple .eyes-row { top: 60px; padding: 0 10px; box-sizing: border-box;}
-        .char-purple .eye { width: 24px; height: 24px; }
-        .char-purple .mouth { top: 100px; width: 20px; height: 4px; }
 
-        /* 2. ODIO/ABURRIDO (Negro) - Cuadrado */
-        .char-black .body-shape {
-            width: 90px;
-            height: 160px;
-            background: var(--c-black);
-            border-radius: 8px;
+        .spit {
+            background: rgba(200, 240, 255, 0.9);
+            border: 1px solid rgba(150, 200, 255, 0.5);
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        .char-black .eyes-row { top: 50px; padding: 0 5px; box-sizing: border-box; }
-        .char-black .eye { width: 20px; height: 20px; background: white; }
-        .char-black .mouth { top: 85px; width: 15px; height: 2px; background: #eee; }
 
-        /* 3. NERVIOSO (Amarillo) - Pastilla */
-        .char-yellow .body-shape {
-            width: 80px;
-            height: 130px;
-            background: var(--c-yellow);
-            border-radius: 40px 40px 0 0;
+        .sweat {
+            background: #00d2ff;
+            border-radius: 0 50% 50% 50%;
+            transform: rotate(45deg);
         }
-        .char-yellow .eyes-row { top: 40px; }
-        .char-yellow .eye { width: 14px; height: 14px; }
-        .char-yellow .mouth { top: 65px; width: 8px; height: 8px; border-radius: 50%; }
 
-        /* 4. TONTO (Naranja) - Gota gorda */
-        .char-orange .body-shape {
-            width: 140px;
-            height: 110px;
-            background: var(--c-orange);
-            border-radius: 60px 60px 10px 10px;
-        }
-        .char-orange .eyes-row { top: 35px; width: 60%; left: 20%; position: absolute; }
-        .char-orange .eye { width: 12px; height: 12px; }
-        .char-orange .mouth { top: 60px; width: 30px; height: 10px; border-radius: 0 0 30px 30px; }
+        /* --- 4. DISEÑOS ESPECÍFICOS (El Grupo Compacto) --- */
 
-        /* Helpers de debug o efectos */
-        .debug-touch {
-            position: absolute;
-            width: 20px; height: 20px; background: red; border-radius: 50%;
-            pointer-events: none; opacity: 0;
+        /* MORADO: Atrás Izquierda (El Líder) */
+        #char-purple {
+            left: 20px; bottom: 80px; z-index: 10;
         }
+        #char-purple .body {
+            width: 100px; height: 180px;
+            background: var(--purple);
+            border-radius: 10px 10px 40px 40px;
+        }
+        #char-purple .eye-socket { width: 22px; height: 22px; }
+        #char-purple .mouth { width: 20px; height: 4px; top: 100px; }
+
+        /* NEGRO: Atrás Derecha (El Hater) */
+        #char-black {
+            right: 20px; bottom: 70px; z-index: 11;
+        }
+        #char-black .body {
+            width: 90px; height: 150px;
+            background: var(--black);
+            border-radius: 12px;
+        }
+        #char-black .eye-socket { width: 18px; height: 18px; background: #fff; }
+        #char-black .mouth { width: 15px; height: 2px; top: 80px; background: #888; }
+
+        /* NARANJA: Frente Izquierda (El Tonto) */
+        #char-orange {
+            left: -10px; bottom: 0; z-index: 20;
+        }
+        #char-orange .body {
+            width: 130px; height: 100px;
+            background: var(--orange);
+            border-radius: 60px 60px 20px 20px;
+        }
+        #char-orange .eye-socket { width: 16px; height: 16px; }
+        #char-orange .mouth { width: 25px; height: 10px; top: 55px; border-radius: 0 0 20px 20px; }
+
+        /* AMARILLO: Frente Derecha (El Miedoso) */
+        #char-yellow {
+            right: 0; bottom: 0; z-index: 21;
+        }
+        #char-yellow .body {
+            width: 90px; height: 110px;
+            background: var(--yellow);
+            border-radius: 45px 45px 0 0;
+        }
+        #char-yellow .eye-socket { width: 12px; height: 12px; }
+        #char-yellow .mouth { width: 10px; height: 3px; top: 60px; }
 
     </style>
 </head>
 <body>
 
-    <div class="stage" id="stage"></div>
+    <div id="stage"></div>
 
 <script>
-    // --- 1. PREVENCIÓN DE ZOOM (Nivel Dios) ---
-    document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
-    document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
-    
-    // --- 2. CLASE PERSONAJE (CEREBRO INDIVIDUAL) ---
-    class Character {
-        constructor(config, stage) {
-            this.config = config;
-            this.stage = stage;
-            this.isTalking = false;
-            this.mood = 'neutral';
-            
-            // Render
-            this.el = this.createDOM();
-            this.body = this.el.querySelector('.body-shape');
-            this.face = this.el.querySelector('.face-container');
-            this.eyes = this.el.querySelectorAll('.eye');
-            this.pupils = this.el.querySelectorAll('.pupil');
-            this.eyelids = this.el.querySelectorAll('.eyelid');
-            this.mouth = this.el.querySelector('.mouth');
+/**
+ * ------------------------------------------------------------------
+ * MOTOR DE VIDA ORGÁNICA v2.0
+ * ------------------------------------------------------------------
+ * Características:
+ * - Sistema de Atención Vectorial (Ojos con física)
+ * - Máquina de Estados de Agresión
+ * - Partículas de HTML (Escupitajos, Sudor)
+ * - Loops de Comportamiento Asíncronos
+ */
 
-            // Estado de animación
-            this.breathingAnim = null;
-            this.talkingAnim = null;
-            
-            // Iniciar vida
-            this.breathe();
-            this.blinkLoop();
+// --- UTILIDADES MATEMÁTICAS ---
+const MathUtils = {
+    lerp: (start, end, amt) => (1 - amt) * start + amt * end,
+    clamp: (val, min, max) => Math.min(Math.max(val, min), max),
+    rand: (min, max) => Math.random() * (max - min) + min,
+    randInt: (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
+};
+
+// --- CONFIGURACIÓN GLOBAL ---
+const CONFIG = {
+    eyeDamping: 0.1, // Suavidad de ojos (menor = más arrastre)
+    blinkMin: 2000,
+    blinkMax: 6000,
+    talkSpeed: 0.15,
+    aggressionDecay: 0.05, // Cuánto baja el enojo por frame si no tocas
+    maxAggression: 100,
+    spitChance: 0.8 // Probabilidad de escupitajo en furia máxima
+};
+
+// --- CLASE: SISTEMA DE OJOS ---
+class EyeSystem {
+    constructor(el, xOffset, yOffset, size) {
+        this.el = document.createElement('div');
+        this.el.className = 'eye-socket';
+        this.el.style.left = xOffset + 'px';
+        this.el.style.top = yOffset + 'px';
+        
+        // Estructura interna
+        this.pupil = document.createElement('div');
+        this.pupil.className = 'pupil';
+        
+        this.lidTop = document.createElement('div');
+        this.lidTop.className = 'eyelid-top';
+        this.lidBottom = document.createElement('div');
+        this.lidBottom.className = 'eyelid-bottom';
+
+        this.el.appendChild(this.pupil);
+        this.el.appendChild(this.lidTop);
+        this.el.appendChild(this.lidBottom);
+
+        // Física
+        this.targetX = 0; this.targetY = 0;
+        this.currentX = 0; this.currentY = 0;
+        this.range = size / 2.5; // Rango de movimiento dentro del ojo
+    }
+
+    // Actualiza posición de pupila con interpolación (suavidad)
+    update() {
+        this.currentX = MathUtils.lerp(this.currentX, this.targetX, CONFIG.eyeDamping);
+        this.currentY = MathUtils.lerp(this.currentY, this.targetY, CONFIG.eyeDamping);
+        
+        this.pupil.style.transform = `translate(${this.currentX}px, ${this.currentY}px)`;
+    }
+
+    lookAt(relX, relY) {
+        // relX/relY deben ser valores entre -1 y 1
+        this.targetX = MathUtils.clamp(relX, -1, 1) * this.range;
+        this.targetY = MathUtils.clamp(relY, -1, 1) * this.range;
+    }
+
+    blink(duration = 0.15) {
+        gsap.to([this.lidTop, this.lidBottom], { height: '55%', duration: 0.1, yoyo: true, repeat: 1 });
+    }
+
+    express(type) {
+        gsap.killTweensOf([this.lidTop, this.lidBottom]);
+        if(type === 'angry') {
+            gsap.to(this.lidTop, { height: '45%', duration: 0.3 });
+            gsap.to(this.lidBottom, { height: '20%', duration: 0.3 });
+        } else if (type === 'suspicious') {
+            gsap.to(this.lidTop, { height: '30%', duration: 0.3 });
+            gsap.to(this.lidBottom, { height: '30%', duration: 0.3 });
+        } else if (type === 'scared') {
+            gsap.to([this.lidTop, this.lidBottom], { height: '0%', duration: 0.1 }); // Ojos muy abiertos
+        } else if (type === 'bored') {
+            gsap.to(this.lidTop, { height: '40%', duration: 0.5 });
+            gsap.to(this.lidBottom, { height: '0%', duration: 0.5 });
+        } else {
+            // Neutral
+            gsap.to([this.lidTop, this.lidBottom], { height: '0%', duration: 0.3 });
         }
+    }
+}
 
-        createDOM() {
-            const wrapper = document.createElement('div');
-            wrapper.className = `char-wrapper char-${this.config.id}`;
-            wrapper.style.left = this.config.x + '%';
-            wrapper.style.zIndex = this.config.z;
+// --- CLASE: PERSONAJE ---
+class Character {
+    constructor(id, color, type, config) {
+        this.id = id;
+        this.type = type; // 'leader', 'hater', 'dumb', 'scared'
+        this.config = config; // {x, y, w, h, eyePos}
+        
+        this.isTalking = false;
+        this.attention = { x: 0, y: 0 }; // Dónde está mirando (-1 a 1)
+        this.baseScale = 1;
 
-            // Inyectar HTML interno
-            wrapper.innerHTML = `
-                <div class="body-shape">
-                    <div class="face-container">
-                        <div class="eyes-row">
-                            <div class="eye"><div class="pupil"></div><div class="eyelid"></div></div>
-                            <div class="eye"><div class="pupil"></div><div class="eyelid"></div></div>
-                        </div>
-                        <div class="mouth"></div>
-                    </div>
-                </div>
-            `;
-            this.stage.appendChild(wrapper);
-            return wrapper;
-        }
+        this.dom = this.createDOM(color);
+        this.eyes = [];
+        this.setupEyes();
+        
+        // Ciclos de vida
+        this.startBreathing();
+        this.blinkLoop();
+    }
 
-        // --- MOTOR DE EXPRESIÓN ---
+    createDOM(color) {
+        const container = document.createElement('div');
+        container.className = 'char-container';
+        container.id = `char-${this.id}`;
 
-        // Mueve la cara (ojos/boca) dentro del cuerpo para simular dirección
-        lookAt(x, y, urgency = 1) {
-            const rect = this.body.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            
-            // Calculamos desplazamiento relativo (-1 a 1)
-            let dx = (x - centerX) / (window.innerWidth / 2);
-            let dy = (y - centerY) / (window.innerHeight / 2);
-            
-            // Limitamos para que la cara no se salga del cuerpo
-            dx = Math.max(-1, Math.min(1, dx));
-            dy = Math.max(-1, Math.min(1, dy));
+        const body = document.createElement('div');
+        body.className = 'body';
+        
+        // Capa de cara
+        this.faceLayer = document.createElement('div');
+        this.faceLayer.className = 'face-layer';
 
-            // Mover el contenedor de la cara (Parallax Effect)
-            // Cada personaje tiene un límite de movimiento facial definido en config
-            const rangeX = this.config.faceRangeX || 15;
-            const rangeY = this.config.faceRangeY || 5;
+        this.mouth = document.createElement('div');
+        this.mouth.className = 'mouth';
 
-            gsap.to(this.face, {
-                x: dx * rangeX,
-                y: dy * rangeY,
-                duration: 0.5 / urgency,
-                ease: "power2.out"
-            });
+        this.faceLayer.appendChild(this.mouth);
+        body.appendChild(this.faceLayer);
+        container.appendChild(body);
+        
+        // Evento de toque INDIVIDUAL
+        container.addEventListener('pointerdown', (e) => {
+            e.stopPropagation(); // Evita que el "mundo" lo detecte
+            World.handleEntityTouch(this);
+        });
 
-            // Mover pupilas (Detalle extra)
-            const pupilRange = 4;
-            gsap.to(this.pupils, {
-                x: dx * pupilRange,
-                y: dy * pupilRange,
-                duration: 0.2 / urgency
-            });
-        }
+        document.getElementById('stage').appendChild(container);
+        return { container, body, face: this.faceLayer };
+    }
 
-        setExpression(type) {
-            this.mood = type;
-            // Resetear
-            gsap.killTweensOf(this.eyelids);
-            gsap.killTweensOf(this.mouth);
+    setupEyes() {
+        const spacing = this.id === 'purple' ? 26 : (this.id === 'orange' ? 30 : 22);
+        const yPos = this.config.eyeY;
+        const xCenter = parseInt(getComputedStyle(this.dom.body).width) / 2;
+        const size = this.id === 'purple' ? 22 : (this.id === 'orange' ? 16 : (this.id === 'black' ? 18 : 12));
 
-            if(type === 'angry') {
-                gsap.to(this.eyelids, { height: '55%', duration: 0.3 }); // Ojos entrecerrados
-                gsap.to(this.mouth, { width: 10, height: 2, borderRadius: 0, duration: 0.3 }); // Boca línea
-            } else if(type === 'surprise') {
-                gsap.to(this.eyelids, { height: '0%', duration: 0.1 });
-                gsap.to(this.mouth, { width: 15, height: 15, borderRadius: '50%', duration: 0.2 }); // Boca O
-            } else if(type === 'bored') {
-                gsap.to(this.eyelids, { height: '40%', duration: 0.5 });
-                gsap.to(this.mouth, { width: 12, height: 2, duration: 0.5 });
-            } else if(type === 'suspicious') {
-                gsap.to(this.eyelids, { height: '30%', duration: 0.4 });
-                gsap.to(this.mouth, { x: 5, width: 8, duration: 0.4 }); // Boca torcida
-            } else {
-                // Neutral
-                gsap.to(this.eyelids, { height: '0%', duration: 0.4 });
-                gsap.to(this.mouth, { width: 18, height: 5, borderRadius: '0 0 20px 20px', x: 0, duration: 0.4 });
-            }
-        }
+        // Ojo Izquierdo
+        const leftEye = new EyeSystem(this.dom.face, xCenter - spacing/2 - size/2, yPos, size);
+        const rightEye = new EyeSystem(this.dom.face, xCenter + spacing/2 - size/2, yPos, size);
+        
+        this.dom.face.appendChild(leftEye.el);
+        this.dom.face.appendChild(rightEye.el);
+        this.eyes = [leftEye, rightEye];
+    }
 
-        startTalking() {
-            if(this.isTalking) return;
-            this.isTalking = true;
-            this.talkingAnim = gsap.to(this.mouth, {
-                height: () => Math.random() * 8 + 2,
-                width: () => Math.random() * 5 + 10,
-                duration: 0.15,
-                repeat: -1,
-                yoyo: true
-            });
-        }
+    // --- LOGICA DE COMPORTAMIENTO ---
 
-        stopTalking() {
-            this.isTalking = false;
-            if(this.talkingAnim) this.talkingAnim.kill();
-            this.setExpression(this.mood); // Restaurar boca según estado
-        }
+    update() {
+        // 1. Actualizar ojos
+        this.eyes.forEach(eye => {
+            // Los ojos miran a la "atención" global del personaje + ruido
+            eye.lookAt(this.attention.x, this.attention.y);
+            eye.update();
+        });
+    }
 
-        // --- VIDA INTERNA ---
-        breathe() {
-            // Respiración única basada en su personalidad
-            const speed = this.config.breathSpeed || 2;
-            this.breathingAnim = gsap.to(this.body, {
-                scaleY: 1.02,
-                scaleX: 0.99,
-                y: -2,
-                duration: speed,
-                repeat: -1,
-                yoyo: true,
-                ease: "sine.inOut",
-                delay: Math.random()
-            });
-        }
+    setAttention(x, y, speed = 1) {
+        // Interpolamos la atención del personaje para que no gire la cabeza de golpe
+        // Nota: Aquí simulamos que gira los ojos primero, luego la cara
+        gsap.to(this.attention, { x: x, y: y, duration: 0.5 / speed });
 
-        blinkLoop() {
-            if(this.mood === 'angry') {
-                setTimeout(() => this.blinkLoop(), 1000);
-                return; 
-            }
-            
-            const tl = gsap.timeline({
-                onComplete: () => {
-                    const nextBlink = Math.random() * 3000 + 1000;
-                    setTimeout(() => this.blinkLoop(), nextBlink);
-                }
-            });
-            tl.to(this.eyelids, { height: '100%', duration: 0.1 })
-              .to(this.eyelids, { height: '0%', duration: 0.15 });
+        // Mover la capa de la cara (Parallax)
+        const faceMoveX = x * 10; 
+        const faceMoveY = y * 5;
+        gsap.to(this.dom.face, { x: faceMoveX, y: faceMoveY, duration: 0.8 / speed, ease: "power2.out" });
+    }
+
+    setMood(mood) {
+        this.eyes.forEach(e => e.express(mood));
+        
+        // Boca según mood
+        if(mood === 'angry') {
+            gsap.to(this.mouth, { width: 15, height: 2, borderRadius: 0, duration: 0.3 });
+        } else if (mood === 'surprise') {
+            gsap.to(this.mouth, { width: 10, height: 10, borderRadius: '50%', duration: 0.2 });
+        } else if (mood === 'talking') {
+            // (Manejado por talk())
+        } else {
+            // Neutral
+            const w = this.id === 'orange' ? 25 : 15;
+            const h = this.id === 'orange' ? 10 : (this.id === 'purple' ? 4 : 2);
+            gsap.to(this.mouth, { width: w, height: h, borderRadius: '0 0 10px 10px', duration: 0.4 });
         }
     }
 
-    // --- 3. DIRECTOR DE ESCENA (IA GLOBAL) ---
-    class Director {
-        constructor() {
-            this.stage = document.getElementById('stage');
-            this.chars = {};
-            this.state = 'IDLE'; // IDLE, GOSSIP, JUDGING
-            this.interruptionTimer = null;
+    talk() {
+        if(this.isTalking) return;
+        this.isTalking = true;
+        
+        this.talkAnim = gsap.to(this.mouth, {
+            height: () => MathUtils.rand(4, 12),
+            width: () => MathUtils.rand(10, 20),
+            duration: 0.15,
+            repeat: -1,
+            yoyo: true
+        });
 
-            // Configuración de Personalidades
-            const configs = [
-                { id: 'purple', x: 15, z: 10, faceRangeX: 20, breathSpeed: 2.5 }, // Líder
-                { id: 'black', x: 38, z: 5, faceRangeX: 10, breathSpeed: 3 }, // Aburrido
-                { id: 'yellow', x: 60, z: 8, faceRangeX: 18, breathSpeed: 0.8 }, // Nervioso (respira rápido)
-                { id: 'orange', x: 80, z: 12, faceRangeX: 25, breathSpeed: 2.2 } // Tonto (gran rango movimiento)
-            ];
+        // Rebote del cuerpo al hablar
+        this.bodyTalkAnim = gsap.to(this.dom.body, {
+            rotation: () => MathUtils.rand(-2, 2),
+            y: "+=2",
+            duration: 0.2,
+            repeat: -1,
+            yoyo: true
+        });
+    }
 
-            configs.forEach(c => {
-                this.chars[c.id] = new Character(c, this.stage);
-            });
+    stopTalking() {
+        this.isTalking = false;
+        if(this.talkAnim) this.talkAnim.kill();
+        if(this.bodyTalkAnim) this.bodyTalkAnim.kill();
+        gsap.to(this.dom.body, { rotation: 0, y: 0, duration: 0.3 });
+        this.setMood(this.mood || 'neutral');
+    }
 
-            this.charArray = Object.values(this.chars);
+    // --- ACCIONES ESPECIALES (Reacciones al toque) ---
+
+    freakOut() {
+        // Para el Amarillo (Miedoso)
+        this.setMood('scared');
+        gsap.to(this.dom.body, { scale: 0.8, y: 20, duration: 0.2, yoyo: true, repeat: 3 });
+        this.createSweat();
+    }
+
+    getAngry() {
+        // Para el Morado (Lider)
+        this.setMood('angry');
+        gsap.to(this.dom.body, { scale: 1.1, duration: 0.2, yoyo: true, repeat: 1 });
+    }
+
+    actDumb() {
+        // Para el Naranja (Tonto)
+        this.setMood('surprise');
+        this.eyes[0].lookAt(-0.8, -0.5); // Ojos bizcos
+        this.eyes[1].lookAt(0.8, 0.5);
+        gsap.to(this.dom.body, { rotation: 10, duration: 0.5, ease: "elastic.out(1, 0.3)" });
+        setTimeout(() => gsap.to(this.dom.body, { rotation: 0, duration: 0.5 }), 1000);
+    }
+
+    spitAtCamera() {
+        // Para el Negro (Hater) - LA FUNCIÓN PRO
+        this.setMood('angry');
+        
+        // 1. Animación de "Cargar" escupitajo (hacia atrás)
+        gsap.to(this.dom.body, { scale: 0.9, y: 10, duration: 0.3 });
+
+        // 2. Disparar
+        setTimeout(() => {
+            gsap.to(this.dom.body, { scale: 1.05, y: -5, duration: 0.1, onComplete: () => {
+                gsap.to(this.dom.body, { scale: 1, y: 0, duration: 0.3 });
+            }});
+
+            // Crear partícula de escupitajo
+            const spit = document.createElement('div');
+            spit.className = 'particle spit';
             
-            this.initInteractions();
-            this.startBrain();
-        }
+            // Posición inicial (la boca del personaje)
+            const rect = this.mouth.getBoundingClientRect();
+            spit.style.left = (rect.left + rect.width/2) + 'px';
+            spit.style.top = (rect.top + rect.height/2) + 'px';
+            spit.style.width = '10px'; spit.style.height = '10px';
+            document.body.appendChild(spit);
 
-        // --- LÓGICA DE INTERACCIÓN ---
-        initInteractions() {
-            // TOQUE EN PANTALLA
-            const handleInput = (e) => {
-                if(this.state === 'JUDGING') return; // Ya están enojados
-                this.triggerJudgment();
-            };
-            
-            document.body.addEventListener('pointerdown', handleInput);
-        }
-
-        // --- CEREBRO PRINCIPAL ---
-        startBrain() {
-            const think = () => {
-                if(this.state === 'JUDGING') return; // Cerebro congelado por ira
-
-                const r = Math.random();
-
-                if (this.state === 'IDLE') {
-                    if (r < 0.3) this.startGossip(); // 30% empezar chisme
-                    else this.lookAroundRandomly();
-                } else if (this.state === 'GOSSIP') {
-                    if (r < 0.2) this.changeSpeaker();
-                    else if (r < 0.4) this.suspiciousCheck(); // MIRADA DE SOSPECHA
-                    else if (r > 0.8) this.stopGossip(); // Silencio incómodo
-                }
-
-                // Siguiente pensamiento
-                setTimeout(think, Math.random() * 2000 + 1500);
-            };
-            think();
-        }
-
-        // --- COMPORTAMIENTOS ---
-
-        lookAroundRandomly() {
-            this.charArray.forEach(c => {
-                // Miran a la nada
-                c.lookAt(
-                    window.innerWidth/2 + (Math.random()-0.5)*500,
-                    window.innerHeight/2 + (Math.random()-0.5)*300
-                );
-                c.setExpression('neutral');
-            });
-        }
-
-        startGossip() {
-            this.state = 'GOSSIP';
-            this.changeSpeaker();
-        }
-
-        changeSpeaker() {
-            // Resetear anteriores
-            this.charArray.forEach(c => c.stopTalking());
-
-            // Elegir hablante
-            const speaker = this.getRandomChar();
-            speaker.startTalking();
-            speaker.setExpression('neutral');
-
-            // El hablante mira "al grupo" (centro aproximado) o al frente con confianza
-            speaker.lookAt(window.innerWidth/2, window.innerHeight/2 + 100);
-
-            // Los demás miran al hablante
-            const speakerRect = speaker.body.getBoundingClientRect();
-            const targetX = speakerRect.left + speakerRect.width/2;
-            const targetY = speakerRect.top + 30; // Miran a los ojos del hablante
-
-            this.charArray.forEach(c => {
-                if(c !== speaker) {
-                    // Reacciones variadas
-                    if(c.config.id === 'black') c.setExpression('bored'); // Negro siempre aburrido
-                    else if(c.config.id === 'yellow') c.setExpression('surprise'); // Amarillo impresionado
-                    else c.setExpression('neutral');
-
-                    c.lookAt(targetX, targetY);
+            // Trayectoria hacia la "cámara" (Centro de pantalla y grande)
+            gsap.to(spit, {
+                left: window.innerWidth / 2 + MathUtils.rand(-50, 50),
+                top: window.innerHeight / 2 + MathUtils.rand(-50, 50),
+                width: 100, // Se hace grande al acercarse
+                height: 100,
+                opacity: 0.8,
+                duration: 0.4,
+                ease: "power2.in",
+                onComplete: () => {
+                    // 3. Efecto de "Pegarse" en la pantalla
+                    spit.style.borderRadius = "40% 60% 30% 70% / 50% 30% 70% 50%"; // Forma irregular orgánica
+                    
+                    // Resbalar lentamente
+                    gsap.to(spit, { y: "+=50", opacity: 0, duration: 3, delay: 0.5, onComplete: () => spit.remove() });
                 }
             });
-        }
 
-        suspiciousCheck() {
-            // "Uno mira de reojo a la pantalla"
-            const paranoid = this.getRandomChar();
+        }, 300);
+    }
+
+    createSweat() {
+        const sweat = document.createElement('div');
+        sweat.className = 'particle sweat';
+        const rect = this.dom.body.getBoundingClientRect();
+        sweat.style.left = (rect.right - 20) + 'px';
+        sweat.style.top = rect.top + 'px';
+        sweat.style.width = '10px'; sweat.style.height = '15px';
+        document.body.appendChild(sweat);
+
+        gsap.to(sweat, { y: -20, opacity: 1, duration: 0.3 });
+        gsap.to(sweat, { y: 20, opacity: 0, duration: 0.8, delay: 0.3, onComplete: () => sweat.remove() });
+    }
+
+    // --- CICLOS INTERNOS ---
+    startBreathing() {
+        const rate = MathUtils.rand(1.5, 3);
+        gsap.to(this.dom.body, {
+            scaleY: 1.02, scaleX: 0.99,
+            duration: rate,
+            yoyo: true, repeat: -1, ease: "sine.inOut",
+            delay: MathUtils.rand(0, 1)
+        });
+    }
+
+    blinkLoop() {
+        const next = MathUtils.rand(CONFIG.blinkMin, CONFIG.blinkMax);
+        setTimeout(() => {
+            if(this.mood !== 'angry') this.eyes.forEach(e => e.blink());
+            this.blinkLoop();
+        }, next);
+    }
+}
+
+// --- CLASE: MUNDO (EL CEREBRO GLOBAL) ---
+const World = {
+    chars: [],
+    state: 'GOSSIP', // GOSSIP, JUDGING, SILENCE
+    aggressionLevel: 0,
+    maxAggression: 5,
+    touchCount: 0,
+    lastTouchTime: 0,
+    gossipTimer: null,
+    decayTimer: null,
+
+    init() {
+        // Crear personajes
+        this.chars.push(new Character('purple', null, 'leader', { eyeY: 60 }));
+        this.chars.push(new Character('black', null, 'hater', { eyeY: 50 }));
+        this.chars.push(new Character('orange', null, 'dumb', { eyeY: 35 }));
+        this.chars.push(new Character('yellow', null, 'scared', { eyeY: 40 }));
+        
+        this.startLoop();
+        this.setupInput();
+        this.startGossipCycle();
+        this.startAggressionDecay();
+    },
+
+    setupInput() {
+        // Listener global (Toque al fondo)
+        document.addEventListener('pointerdown', (e) => {
+            // Si el toque fue en un personaje, no cuenta como toque de fondo
+            if(e.target.closest('.char-container')) return;
             
-            // Guarda posición actual para volver
-            const prevMood = paranoid.mood;
+            this.handleGlobalTouch(e.clientX, e.clientY);
+        });
+    },
+
+    startLoop() {
+        const loop = () => {
+            this.chars.forEach(c => c.update());
+            requestAnimationFrame(loop);
+        };
+        loop();
+    },
+
+    // --- IA DE CONVERSACIÓN ---
+    startGossipCycle() {
+        const nextGossip = () => {
+            if(this.state === 'JUDGING') return; // Si están juzgando, no hablan
+
+            // Reiniciar estado
+            this.chars.forEach(c => c.stopTalking());
+
+            // Decidir acción
+            const r = Math.random();
             
-            // Mira rápido al usuario
-            paranoid.lookAt(window.innerWidth/2, window.innerHeight/2, 2); // 2 = más urgente
-            paranoid.setExpression('suspicious');
+            if(r < 0.7) {
+                // ALGUIEN HABLA
+                const speaker = this.chars[MathUtils.randInt(0, 3)];
+                speaker.talk();
+                speaker.setAttention(0, 0.5); // Mira al "centro" del grupo
 
-            // Vuelve a mirar al grupo después de 800ms
-            setTimeout(() => {
-                if(this.state === 'JUDGING') return;
-                // Si estaba hablando, sigue hablando
-                paranoid.setExpression(prevMood);
-                // Volver a mirar al hablante actual (simplificado: mira al centro)
-                paranoid.lookAt(window.innerWidth/2, window.innerHeight/2 + 100); 
-            }, 800);
+                // Los demás miran al hablante
+                const sRect = speaker.dom.body.getBoundingClientRect();
+                const sX = sRect.left + sRect.width/2;
+                const sY = sRect.top + 30;
+
+                this.chars.forEach(c => {
+                    if(c !== speaker) {
+                        // Calcular vector normalizado hacia el hablante
+                        const cRect = c.dom.body.getBoundingClientRect();
+                        const dx = (sX - (cRect.left + cRect.width/2)) / 200;
+                        const dy = (sY - (cRect.top + cRect.height/2)) / 200;
+                        c.setAttention(dx, dy);
+                        c.setMood('neutral');
+                    }
+                });
+
+            } else {
+                // SILENCIO INCÓMODO O MIRADA ALEATORIA
+                this.chars.forEach(c => {
+                    c.setAttention(MathUtils.rand(-1, 1), MathUtils.rand(-0.5, 0.5));
+                    if(Math.random() > 0.8) c.setMood('bored');
+                });
+            }
+
+            // Ocurrencias aleatorias durante el chisme ("Side Eye")
+            if (this.aggressionLevel > 0 && Math.random() > 0.6) {
+                // Si están un poco molestos, uno vigila al usuario
+                const watcher = this.chars[MathUtils.randInt(0, 3)];
+                setTimeout(() => {
+                   if(this.state !== 'JUDGING') {
+                       watcher.setAttention(0, 0); // Mira hacia "adelante" (usuario)
+                       watcher.setMood('suspicious');
+                   }
+                }, 500);
+            }
+
+            this.gossipTimer = setTimeout(nextGossip, MathUtils.rand(1500, 4000));
+        };
+        nextGossip();
+    },
+
+    // --- IA DE AGRESIÓN (EL REQUERIMIENTO PRINCIPAL) ---
+    
+    handleGlobalTouch(x, y) {
+        const now = Date.now();
+        // Si tocas muy rápido, sube más rápido la agresión
+        const spamBonus = (now - this.lastTouchTime < 300) ? 2 : 1;
+        this.touchCount += spamBonus;
+        this.aggressionLevel = Math.min(this.aggressionLevel + spamBonus, 10);
+        this.lastTouchTime = now;
+
+        console.log("Aggression:", this.aggressionLevel);
+
+        this.reactToAggression();
+    },
+
+    reactToAggression() {
+        // NIVELES DE REACCIÓN
+        
+        // NIVEL 1: MOLESTIA LEVE (1-3 toques)
+        if (this.aggressionLevel > 0 && this.aggressionLevel < 4) {
+            // Uno aleatorio te mira mal
+            const observer = this.chars[MathUtils.randInt(0, 3)];
+            observer.stopTalking(); // Se calla
+            observer.setAttention(0, 0, 2); // Mira rápido a cámara
+            observer.setMood('suspicious');
+            
+            // Los otros siguen a lo suyo pero se nota tensión
+        }
+        
+        // NIVEL 2: SILENCIO Y JUICIO (4-7 toques)
+        else if (this.aggressionLevel >= 4 && this.aggressionLevel < 8) {
+            this.state = 'JUDGING';
+            clearTimeout(this.gossipTimer); // Cortar chisme
+            
+            this.chars.forEach((c, i) => {
+                c.stopTalking();
+                // Reacción en cadena, no todos a la vez
+                setTimeout(() => {
+                    c.setAttention(0, 0, 1.5); // Todos miran al frente
+                    c.setMood('bored'); // Cara de "¿En serio?"
+                }, i * 100);
+            });
         }
 
-        stopGossip() {
-            this.state = 'IDLE';
-            this.charArray.forEach(c => c.stopTalking());
-            this.lookAroundRandomly();
-        }
-
-        // --- LA REACCIÓN DE "NO ME TOQUES" ---
-        triggerJudgment() {
-            console.log("JUDGMENT DAY");
+        // NIVEL 3: FURIA TOTAL / ESCUPITAJO (8+ toques)
+        else if (this.aggressionLevel >= 8) {
             this.state = 'JUDGING';
             
-            // Detener charla
-            this.charArray.forEach(c => c.stopTalking());
-
-            // CALCULAR EL CENTRO DE LA PANTALLA (USUARIO)
-            const userX = window.innerWidth / 2;
-            const userY = window.innerHeight / 2;
-
-            // REACCIÓN ESCALONADA (Staggered)
-            // Cada uno tiene un tiempo de reacción diferente según personalidad
-            const reactionTimes = {
-                'yellow': 0.1, // Nervioso: Inmediato
-                'purple': 0.3, // Líder: Controlado
-                'black': 0.5,  // Aburrido: Lento
-                'orange': 0.8  // Tonto: Muy lento
-            };
-
-            this.charArray.forEach(c => {
-                const delay = reactionTimes[c.config.id];
-
-                // 1. Congelar un momento
-                setTimeout(() => {
-                    // 2. Mover la CARA (ojos y boca) hacia el usuario lentamente
-                    c.lookAt(userX, userY, 0.5); // 0.5 = lento y dramático
-                    
-                    // 3. Cambiar expresión a Enojado
-                    c.setExpression('angry');
-
-                    // 4. Pequeño salto de indignación (Cuerpo)
-                    gsap.to(c.body, { y: -10, duration: 0.2, yoyo: true, repeat: 1 });
-
-                }, delay * 1000);
+            this.chars.forEach(c => {
+                c.stopTalking();
+                c.setAttention(0, 0, 5); // Mirada clavada instantánea
+                c.setMood('angry');
+                
+                // Efecto de "Venir hacia ti"
+                gsap.to(c.dom.body, { scale: 1.1, duration: 0.2 });
             });
 
-            // RELAJARSE DESPUÉS DE UN RATO
-            clearTimeout(this.interruptionTimer);
-            this.interruptionTimer = setTimeout(() => {
-                this.recover();
-            }, 4000); // 4 segundos de juicio silencioso
+            // EL HATER (Negro) TE ESCUPE SI TIENES MALA SUERTE
+            const hater = this.chars.find(c => c.id === 'black');
+            if (hater && Math.random() < CONFIG.spitChance) {
+                hater.spitAtCamera();
+                this.aggressionLevel = 0; // Resetear tras el clímax para que no escupa infinito
+                setTimeout(() => this.resetState(), 4000); // Tardan más en recuperarse
+                return;
+            }
+        }
+    },
+
+    handleEntityTouch(char) {
+        // REACCIONES A TOQUES INDIVIDUALES (FÍSICOS)
+        // Esto interrumpe todo y genera caos
+        this.state = 'CHAOS';
+        clearTimeout(this.gossipTimer);
+        this.lastTouchTime = Date.now(); // Resetea decay
+
+        // 1. Reacción del tocado
+        if (char.id === 'yellow') char.freakOut();
+        else if (char.id === 'purple') char.getAngry();
+        else if (char.id === 'orange') char.actDumb();
+        else if (char.id === 'black') {
+             // El negro tiene mal genio instantáneo
+             char.spitAtCamera();
+             this.resetStateAfter(3000);
+             return;
         }
 
-        recover() {
-            this.state = 'IDLE';
-            // Uno suspira y vuelven a lo suyo
-            this.charArray.forEach(c => {
-                c.setExpression('neutral');
-            });
-            this.startGossip();
-        }
+        // 2. Reacción de los otros (miran al que fue tocado)
+        this.chars.forEach(c => {
+            if(c !== char) {
+                // Miran al compañero
+                const tRect = char.dom.body.getBoundingClientRect();
+                const myRect = c.dom.body.getBoundingClientRect();
+                const dx = (tRect.left - myRect.left) / 200;
+                const dy = (tRect.top - myRect.top) / 200;
+                
+                c.stopTalking();
+                c.setAttention(dx, dy, 2);
+                c.setMood('surprise');
+            }
+        });
 
-        getRandomChar() {
-            return this.charArray[Math.floor(Math.random() * this.charArray.length)];
-        }
+        this.resetStateAfter(2000);
+    },
+
+    resetStateAfter(ms) {
+        setTimeout(() => this.resetState(), ms);
+    },
+
+    resetState() {
+        this.state = 'GOSSIP';
+        this.aggressionLevel = Math.max(0, this.aggressionLevel - 5); // Bajar enojo
+        
+        // Volver a tamaño normal
+        this.chars.forEach(c => {
+            gsap.to(c.dom.body, { scale: 1, duration: 0.5 });
+        });
+        
+        this.startGossipCycle();
+    },
+
+    startAggressionDecay() {
+        // Si no tocas la pantalla, se les pasa el enojo poco a poco
+        setInterval(() => {
+            if (this.aggressionLevel > 0 && Date.now() - this.lastTouchTime > 1000) {
+                this.aggressionLevel -= 1;
+                if(this.aggressionLevel <= 0) {
+                    this.aggressionLevel = 0;
+                    if(this.state === 'JUDGING') this.resetState();
+                }
+            }
+        }, 1000);
     }
+};
 
-    // ARRANQUE
-    window.onload = () => new Director();
+// --- INICIO ---
+window.onload = () => World.init();
 
 </script>
 </body>
