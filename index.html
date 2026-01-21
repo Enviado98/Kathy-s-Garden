@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kathy's Garden</title>
+    <title>Kathy's Mushroom Garden</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;600&display=swap');
 
         body, html {
             margin: 0;
@@ -13,92 +13,94 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #000;
+            background-color: #2a3d2a; /* Verde oscuro de fondo por si acaso */
         }
 
-        /* --- 1. LA IMAGEN DE FONDO --- */
-        .background-container {
+        /* --- 1. FONDO CON "RESPIRACIÓN" --- */
+        .bg-container {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            /* AQUÍ SE CARGA TU IMAGEN */
-            background-image: url('fondo.jpg'); 
-            background-position: center bottom; /* Centra la puerta/agua */
+            top: -5%;
+            left: -5%;
+            width: 110%;
+            height: 110%;
+            background-image: url('hongos.jpg'); /* TU IMAGEN AQUÍ */
             background-size: cover;
+            background-position: center;
+            /* Esta animación hace que la imagen parezca viva */
+            animation: breathe 12s ease-in-out infinite alternate;
             z-index: 1;
         }
 
-        /* --- 2. CAPAS DE ATMÓSFERA --- */
-        .overlay {
+        /* --- 2. RAYOS DE SOL (GOD RAYS) --- */
+        /* Simulamos la luz que entra por la esquina superior derecha */
+        .sun-beams {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: -50%;
+            right: -20%;
+            width: 100%;
+            height: 150%;
+            background: radial-gradient(circle at 100% 0%, 
+                rgba(255, 255, 220, 0.4) 0%, 
+                rgba(255, 255, 255, 0.1) 30%, 
+                transparent 70%);
+            transform: rotate(-15deg);
+            pointer-events: none;
+            mix-blend-mode: overlay;
+            z-index: 2;
+            animation: beamPulse 8s ease-in-out infinite;
+        }
+
+        /* --- 3. VIÑETA SUAVE --- */
+        /* Oscurece un poco los bordes para centrar la atención en los hongos */
+        .vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 40%, rgba(10, 30, 10, 0.6) 100%);
+            z-index: 3;
             pointer-events: none;
         }
 
-        /* Oscuridad perimetral (Vignette) para dar foco */
-        .vignette {
-            background: radial-gradient(circle at 50% 50%, transparent 40%, #000 120%);
-            z-index: 10;
-        }
-
-        /* --- 3. LUCES ESPECÍFICAS (AJUSTADAS A LA FOTO) --- */
-        
-        /* Luz de la Lámpara en la puerta */
-        .lantern-light {
+        /* --- 4. TÍTULO KAWAII --- */
+        .title-container {
             position: absolute;
-            top: 58%; /* Ajusta esto según donde caiga la lámpara en tu pantalla */
-            right: 25%; /* Ajusta esto horizontalmente */
-            width: 50px;
-            height: 50px;
-            background: radial-gradient(circle, rgba(255, 200, 50, 0.9) 0%, rgba(255, 100, 0, 0) 70%);
-            mix-blend-mode: screen; /* Fusión de luz real */
-            animation: flicker 4s infinite;
-            z-index: 5;
-            filter: blur(10px);
-        }
-
-        /* Brillo Mágico del Agua */
-        .water-glow {
-            position: absolute;
-            top: 35%;
-            left: 50%;
-            transform: translate(-50%, 0);
-            width: 60%;
-            height: 30%;
-            background: radial-gradient(ellipse at center, rgba(0, 255, 255, 0.3) 0%, transparent 70%);
-            mix-blend-mode: overlay;
-            animation: waterPulse 6s infinite ease-in-out;
-            z-index: 4;
-            filter: blur(20px);
-        }
-
-        /* --- 4. TEXTO --- */
-        .title {
-            position: absolute;
-            bottom: 30px;
+            bottom: 40px;
             width: 100%;
             text-align: center;
-            font-family: 'Cinzel Decorative', cursive;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 2rem;
-            text-shadow: 0 0 20px rgba(0, 255, 200, 0.5);
             z-index: 20;
-            opacity: 0.8;
-            letter-spacing: 5px;
+            pointer-events: none;
         }
 
-        /* --- 5. ANIMACIONES CSS --- */
-        @keyframes flicker {
-            0%, 100% { opacity: 0.8; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.95); }
-            20% { opacity: 0.9; }
-            80% { opacity: 0.6; }
+        h1 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2.5rem;
+            color: #fff;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            margin: 0;
+            letter-spacing: 2px;
+            opacity: 0.9;
         }
 
-        @keyframes waterPulse {
-            0%, 100% { opacity: 0.4; transform: translate(-50%, 0) scale(1); }
-            50% { opacity: 0.7; transform: translate(-50%, 0) scale(1.05); }
+        p {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1rem;
+            color: #ffccdd; /* Un rosa suave que combina con los hongos */
+            margin-top: 5px;
+            font-weight: 300;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        /* --- ANIMACIONES CSS --- */
+        
+        /* Efecto de respiración (Zoom suave) */
+        @keyframes breathe {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); } 
+        }
+
+        /* Pulsación de la luz solar */
+        @keyframes beamPulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.5; }
         }
 
         /* --- CANVAS DE PARTÍCULAS --- */
@@ -106,97 +108,135 @@
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            z-index: 6;
+            z-index: 10;
+            pointer-events: none;
         }
+
     </style>
 </head>
 <body>
 
-    <!-- Capa de Fondo (La Imagen) -->
-    <div class="background-container"></div>
+    <div class="bg-container" id="bg"></div>
+    <div class="sun-beams"></div>
+    <div class="vignette"></div>
 
-    <!-- Efectos de Luz Específicos -->
-    <div class="lantern-light"></div> <!-- La luz de la puerta -->
-    <div class="water-glow"></div>    <!-- La luz del agua -->
+    <canvas id="magicCanvas"></canvas>
 
-    <!-- Efectos Globales -->
-    <div class="overlay vignette"></div>
-    <div class="title">Kathy's Garden</div>
-
-    <!-- Partículas de Vida -->
-    <canvas id="magicDust"></canvas>
+    <div class="title-container">
+        <h1>Kathy's Garden</h1>
+        <p>Magic Mushroom Family</p>
+    </div>
 
     <script>
         /**
-         * SISTEMA DE VIDA (PARTÍCULAS)
-         * Añade luciérnagas y esporas mágicas sobre la foto.
+         * MOTOR DE MAGIA VISUAL
+         * Genera dos tipos de partículas:
+         * 1. "Dust": Polvo ambiental que flota lento.
+         * 2. "Sparkle": Brillos que aparecen y desaparecen (como en la foto).
          */
-        const canvas = document.getElementById('magicDust');
-        const ctx = canvas.getContext('2d');
         
-        let w, h;
+        const canvas = document.getElementById('magicCanvas');
+        const ctx = canvas.getContext('2d');
+        const bg = document.getElementById('bg');
+        
+        let width, height;
         const particles = [];
 
+        // Configuración Responsive
         function resize() {
-            w = canvas.width = window.innerWidth;
-            h = canvas.height = window.innerHeight;
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
         }
         window.addEventListener('resize', resize);
         resize();
 
-        class Firefly {
+        // Parallax suave con el mouse (Mueve el fondo ligeramente)
+        document.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - width / 2) * 0.01;
+            const moveY = (e.clientY - height / 2) * 0.01;
+            bg.style.transform = `scale(1.05) translate(${moveX}px, ${moveY}px)`;
+        });
+
+        // CLASE PARTÍCULA
+        class Particle {
             constructor() {
-                this.reset();
+                this.init();
             }
 
-            reset() {
-                this.x = Math.random() * w;
-                this.y = Math.random() * h;
-                this.size = Math.random() * 2 + 1;
-                this.speedX = (Math.random() - 0.5) * 0.5; // Lento
-                this.speedY = (Math.random() - 0.5) * 0.5;
-                this.alpha = 0;
-                this.cycle = Math.random() * Math.PI * 2;
-                this.fadeSpeed = Math.random() * 0.02 + 0.01;
-                // Colores: Dorado (Lámpara) o Cian (Agua)
-                this.color = Math.random() > 0.5 ? '255, 200, 50' : '0, 255, 255'; 
+            init() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.type = Math.random() > 0.8 ? 'sparkle' : 'dust'; // 20% brillos, 80% polvo
+                
+                if (this.type === 'dust') {
+                    this.size = Math.random() * 2;
+                    this.speedY = Math.random() * -0.5 - 0.1; // Sube lento
+                    this.speedX = (Math.random() - 0.5) * 0.5;
+                    this.alpha = Math.random() * 0.5;
+                    this.life = 100; // Infinita
+                } else {
+                    // Sparkle (Brillo estático que titila)
+                    this.size = Math.random() * 3 + 1;
+                    this.speedY = Math.random() * -0.2;
+                    this.speedX = 0;
+                    this.alpha = 0;
+                    this.life = 0; // Para ciclo de animación
+                    this.maxLife = Math.random() * 100 + 50;
+                    this.growing = true;
+                }
             }
 
             update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-
-                // Ciclo de brillo (aparece y desaparece)
-                this.cycle += this.fadeSpeed;
-                this.alpha = Math.abs(Math.sin(this.cycle));
-
-                if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) this.reset();
+                if (this.type === 'dust') {
+                    this.y += this.speedY;
+                    this.x += this.speedX;
+                    if (this.y < 0) this.y = height;
+                    if (this.x > width || this.x < 0) this.x = Math.random() * width;
+                } 
+                else if (this.type === 'sparkle') {
+                    this.y += this.speedY;
+                    // Efecto de titileo (Fade in / Fade out)
+                    if (this.growing) {
+                        this.alpha += 0.02;
+                        if (this.alpha >= 1) this.growing = false;
+                    } else {
+                        this.alpha -= 0.01;
+                        if (this.alpha <= 0) this.init(); // Reiniciar cuando desaparece
+                    }
+                }
             }
 
             draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(${this.color}, ${this.alpha})`;
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = `rgb(${this.color})`;
+                
+                if (this.type === 'dust') {
+                    // Polvo blanco suave
+                    ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+                    ctx.shadowBlur = 0;
+                } else {
+                    // Brillo mágico (Dorado/Blanco)
+                    ctx.fillStyle = `rgba(255, 255, 200, ${this.alpha})`;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = "white";
+                }
+                
                 ctx.fill();
             }
         }
 
-        // Crear 60 luciérnagas
-        for (let i = 0; i < 60; i++) {
-            particles.push(new Firefly());
+        // Crear partículas
+        for (let i = 0; i < 150; i++) {
+            particles.push(new Particle());
         }
 
+        // Loop de animación
         function animate() {
-            ctx.clearRect(0, 0, w, h);
-            
-            // Dibujar partículas
+            ctx.clearRect(0, 0, width, height);
             particles.forEach(p => {
                 p.update();
                 p.draw();
             });
-
             requestAnimationFrame(animate);
         }
 
@@ -204,4 +244,3 @@
     </script>
 </body>
 </html>
-
