@@ -3,154 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kathy's Garden</title>
+    <title>Kathy's Garden Interactive</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
 
-        /* RESETEO TOTAL PARA MÓVIL */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #1a251a; touch-action: none; }
 
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden; /* Prohibido el scroll */
-            background-color: #1a251a; /* Color de carga mientras llega la foto */
-            touch-action: none; /* Evita gestos de arrastre del navegador */
-        }
-
-        /* --- CONTENEDOR PRINCIPAL --- */
+        /* --- ESCENA --- */
         #scene {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            /* 'dvh' se ajusta automáticamente a las barras del navegador móvil */
-            height: 100dvh; 
+            top: 0; left: 0; width: 100%; height: 100dvh;
             overflow: hidden;
+            transition: background-color 1s ease;
         }
 
-        /* --- LA IMAGEN DE FONDO (Optimizado) --- */
+        /* --- IMAGEN DE FONDO --- */
         .bg-image {
             position: absolute;
-            top: -5%; 
-            left: -5%;
-            width: 110%;
-            height: 110%;
-            
-            /* CARGA DE LA FOTO */
-            background-image: url('fondo.jpg'); 
-            
-            /* TRUCO DE ENCUADRE: 
-               'cover' llena la pantalla.
-               'center bottom' asegura que el suelo (hongos) siempre se vea */
+            top: -5%; left: -5%; width: 110%; height: 110%;
+            background-image: url('fondo.jpg'); /* TU IMAGEN */
             background-size: cover;
             background-position: center bottom;
             background-repeat: no-repeat;
-            
             z-index: 1;
-            /* Respiración suave */
-            animation: breathe 10s ease-in-out infinite alternate;
+            /* Transición suave para cambiar de color día/noche */
+            transition: filter 1.5s ease; 
+            animation: breathe 12s ease-in-out infinite alternate;
         }
 
-        /* --- EFECTOS DE LUZ --- */
-        .overlay {
+        /* --- CLASES DE CLIMA (Modifican el fondo) --- */
+        
+        /* Estado por defecto (Día): Sin filtros extra */
+        
+        /* Estado Lluvia: Menos color, más frío */
+        .mode-rain .bg-image {
+            filter: grayscale(0.4) brightness(0.9) hue-rotate(10deg);
+        }
+
+        /* Estado Noche: Oscuro, azulado, alto contraste */
+        .mode-night .bg-image {
+            filter: brightness(0.4) contrast(1.2) hue-rotate(20deg) grayscale(0.2);
+        }
+
+        /* --- CAPAS DE LUZ --- */
+        .sun-beams {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: -50%; right: -20%; width: 100%; height: 150%;
+            background: radial-gradient(circle at 100% 0%, rgba(255, 255, 200, 0.3) 0%, transparent 60%);
+            transform: rotate(-15deg);
             pointer-events: none;
+            mix-blend-mode: overlay;
             z-index: 2;
+            transition: opacity 1s ease;
+        }
+
+        /* Ocultar rayos de sol en lluvia y noche */
+        .mode-rain .sun-beams, 
+        .mode-night .sun-beams {
+            opacity: 0; 
         }
 
         .vignette {
-            /* Sombra en los bordes para dar foco al centro */
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.6) 120%);
+            z-index: 3;
+            pointer-events: none;
         }
 
-        .sun-rays {
-            /* Rayos de sol sutiles */
-            background: linear-gradient(135deg, rgba(255,255,200,0.15) 0%, transparent 40%);
-            mix-blend-mode: overlay;
-        }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
 
-        /* --- TEXTOS --- */
+        /* --- UI (TEXTO) --- */
         .ui-layer {
             position: absolute;
-            bottom: 30px;
+            top: 10%; /* Lo subí un poco para dejar espacio a los botones */
             width: 100%;
             text-align: center;
             z-index: 20;
             pointer-events: none;
+            transition: opacity 0.5s;
         }
+        h1 { font-family: 'Fredoka', sans-serif; color: white; font-size: 2rem; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+        p { font-family: 'Fredoka', sans-serif; color: #ffdcb8; font-size: 0.9rem; letter-spacing: 2px; text-shadow: 0 1px 5px rgba(0,0,0,0.8); }
 
-        h1 {
-            font-family: 'Fredoka', sans-serif;
-            color: white;
-            font-size: 2rem;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            margin-bottom: 5px;
-        }
-
-        p {
-            font-family: 'Fredoka', sans-serif;
-            color: #ffdcb8;
-            font-size: 0.9rem;
-            opacity: 0.9;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        /* --- CANVAS --- */
-        canvas {
+        /* --- BOTONES DE CONTROL --- */
+        .controls {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 10;
-            pointer-events: none;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 30;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* --- ANIMACIONES --- */
-        @keyframes breathe {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.05); } /* Zoom muy leve */
+        .btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s, filter 0.2s;
+            filter: grayscale(1); /* Desactivados se ven grises */
+            opacity: 0.7;
         }
+
+        .btn.active {
+            filter: grayscale(0); /* El activo tiene color */
+            transform: scale(1.2);
+            opacity: 1;
+        }
+
+        /* Animación fondo */
+        @keyframes breathe { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
 
     </style>
 </head>
 <body>
 
     <div id="scene">
-        <!-- Fondo -->
         <div class="bg-image"></div>
+        <div class="sun-beams"></div>
+        <div class="vignette"></div>
         
-        <!-- Capas de ambiente -->
-        <div class="overlay sun-rays"></div>
-        <div class="overlay vignette"></div>
-
-        <!-- Partículas -->
-        <canvas id="magicDust"></canvas>
-
-        <!-- Texto -->
         <div class="ui-layer">
             <h1>Kathy's Garden</h1>
-            <p>Magic Sanctuary</p>
+            <p>Interactive World</p>
+        </div>
+
+        <canvas id="magicDust"></canvas>
+
+        <!-- BOTONES DE CONTROL -->
+        <div class="controls">
+            <button class="btn active" onclick="setWeather('sun')" title="Día">☀️</button>
+            <button class="btn" onclick="setWeather('rain')" title="Lluvia">🌧️</button>
+            <button class="btn" onclick="setWeather('night')" title="Noche">🌙</button>
         </div>
     </div>
 
     <script>
-        /**
-         * SISTEMA DE VIDA OPTIMIZADO PARA MÓVIL
-         */
+        const scene = document.getElementById('scene');
         const canvas = document.getElementById('magicDust');
         const ctx = canvas.getContext('2d');
-        
         let w, h;
-        // Reducimos cantidad de partículas para móviles (mejor rendimiento)
-        const particleCount = 50; 
+        
+        // Estado actual: 'sun', 'rain', 'night'
+        let weatherMode = 'sun'; 
         const particles = [];
+        const particleCount = 60;
 
+        // Resize
         function resize() {
             w = canvas.width = window.innerWidth;
             h = canvas.height = window.innerHeight;
@@ -158,6 +165,27 @@
         window.addEventListener('resize', resize);
         resize();
 
+        // --- LÓGICA DE CLIMA ---
+        function setWeather(mode) {
+            weatherMode = mode;
+            
+            // 1. Cambiar Clases CSS (Fondo)
+            scene.className = ''; // Limpiar
+            if(mode === 'rain') scene.classList.add('mode-rain');
+            if(mode === 'night') scene.classList.add('mode-night');
+
+            // 2. Actualizar botones visualmente
+            document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+            // Activar el botón clickeado (truco para encontrar cuál fue sin pasar 'this')
+            if(mode === 'sun') document.querySelector('button[title="Día"]').classList.add('active');
+            if(mode === 'rain') document.querySelector('button[title="Lluvia"]').classList.add('active');
+            if(mode === 'night') document.querySelector('button[title="Noche"]').classList.add('active');
+
+            // 3. Reiniciar partículas para cambiar su comportamiento inmediatamente
+            particles.forEach(p => p.init());
+        }
+
+        // --- SISTEMA DE PARTÍCULAS ---
         class Particle {
             constructor() {
                 this.init();
@@ -166,54 +194,90 @@
             init() {
                 this.x = Math.random() * w;
                 this.y = Math.random() * h;
-                // Velocidad muy lenta para efecto relajante
-                this.vx = (Math.random() - 0.5) * 0.3;
-                this.vy = (Math.random() - 0.5) * 0.3; 
                 this.size = Math.random() * 2 + 0.5;
                 this.alpha = Math.random();
-                this.fadeSpeed = Math.random() * 0.01 + 0.005;
-                this.fadingOut = Math.random() > 0.5;
+                
+                // Configuración inicial según clima
+                if (weatherMode === 'sun') {
+                    this.vx = (Math.random() - 0.5) * 0.3; // Flotar suave
+                    this.vy = (Math.random() - 0.5) * 0.3;
+                    this.color = '255, 255, 220'; // Dorado claro
+                } 
+                else if (weatherMode === 'rain') {
+                    this.x = Math.random() * w;
+                    this.y = Math.random() * -h; // Empezar arriba
+                    this.vx = 0; // Caer recto (o un poco inclinado)
+                    this.vy = Math.random() * 10 + 5; // Caída RÁPIDA
+                    this.size = Math.random() * 1.5; // Gotas finas
+                    this.color = '200, 220, 255'; // Azul claro
+                }
+                else if (weatherMode === 'night') {
+                    this.vx = (Math.random() - 0.5) * 1; // Movimiento más errático
+                    this.vy = (Math.random() - 0.5) * 1;
+                    this.size = Math.random() * 3 + 1; // Luciérnagas grandes
+                    // Color aleatorio: Verde, Amarillo o Cian
+                    const r = Math.random();
+                    if(r < 0.33) this.color = '255, 255, 100'; // Amarillo
+                    else if(r < 0.66) this.color = '100, 255, 100'; // Verde
+                    else this.color = '100, 255, 255'; // Cian
+                }
             }
 
             update() {
                 this.x += this.vx;
                 this.y += this.vy;
-
-                // Ciclo de brillo (Titilar)
-                if(this.fadingOut) {
-                    this.alpha -= this.fadeSpeed;
-                    if(this.alpha <= 0) {
-                        this.alpha = 0;
-                        this.fadingOut = false;
-                        // Opcional: reposicionar cuando desaparece
-                        if(Math.random() > 0.5) { 
-                             this.x = Math.random() * w; 
-                             this.y = Math.random() * h; 
-                        }
-                    }
-                } else {
-                    this.alpha += this.fadeSpeed;
-                    if(this.alpha >= 1) {
-                        this.alpha = 1;
-                        this.fadingOut = true;
+                
+                // CICLOS DE VIDA
+                if (weatherMode === 'sun' || weatherMode === 'night') {
+                    // Titilar suave
+                    this.alpha += (Math.random() - 0.5) * 0.05;
+                    if(this.alpha < 0) this.alpha = 0;
+                    if(this.alpha > 1) this.alpha = 1;
+                    
+                    // Límites pantalla (rebotar o salir y entrar)
+                    if(this.x < 0) this.x = w;
+                    if(this.x > w) this.x = 0;
+                    if(this.y < 0) this.y = h;
+                    if(this.y > h) this.y = 0;
+                }
+                else if (weatherMode === 'rain') {
+                    // Reiniciar lluvia al tocar el suelo
+                    if (this.y > h) {
+                        this.y = -10;
+                        this.x = Math.random() * w;
                     }
                 }
             }
 
             draw() {
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 220, ${this.alpha})`; // Color Crema/Dorado
-                ctx.shadowBlur = 8;
-                ctx.shadowColor = "white";
-                ctx.fill();
+                
+                if (weatherMode === 'rain') {
+                    // Dibujar lluvia como líneas, no puntos
+                    ctx.strokeStyle = `rgba(${this.color}, 0.6)`;
+                    ctx.lineWidth = 1;
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x, this.y + 10); // Cola de la gota
+                    ctx.stroke();
+                } else {
+                    // Dibujar puntos con brillo (Sun/Night)
+                    ctx.fillStyle = `rgba(${this.color}, ${this.alpha})`;
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    
+                    if(weatherMode === 'night') {
+                        ctx.shadowBlur = 10; // Más brillo de noche
+                        ctx.shadowColor = `rgb(${this.color})`;
+                    } else {
+                        ctx.shadowBlur = 0;
+                    }
+                    ctx.fill();
+                    ctx.shadowBlur = 0; // Reset
+                }
             }
         }
 
         // Crear partículas
-        for(let i=0; i<particleCount; i++) {
-            particles.push(new Particle());
-        }
+        for(let i=0; i<particleCount; i++) particles.push(new Particle());
 
         function animate() {
             ctx.clearRect(0, 0, w, h);
