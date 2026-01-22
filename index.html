@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Saitama Watcher</title>
-    <!-- Librería GSAP para animaciones profesionales -->
+    <title>Saitama Exacto</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
         body {
@@ -12,235 +11,272 @@
             padding: 0;
             width: 100vw;
             height: 100vh;
-            background-color: #f0f0f0; /* Fondo neutro */
+            background-color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            font-family: sans-serif;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
         }
 
-        #saitama-container {
-            width: 90vmin; /* Se adapta a móvil y escritorio */
-            height: 90vmin;
+        #canvas-container {
+            width: 80vmin;
+            height: 80vmin;
             position: relative;
         }
 
         svg {
             width: 100%;
             height: 100%;
-            display: block;
+            overflow: visible;
         }
 
-        /* Estilos base para las partes del SVG */
-        .skin { fill: #FAD1B0; stroke: #4A3B32; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-        .white { fill: #FFFFFF; stroke: #4A3B32; stroke-width: 2.5; }
-        .black { fill: #1D1D1D; }
-        .shadow { fill: rgba(0,0,0,0.1); }
-        .highlight { fill: rgba(255,255,255,0.4); }
-        .suit-yellow { fill: #FDD835; stroke: #4A3B32; stroke-width: 2.5; }
-        .cape-white { fill: #F5F5F5; stroke: #4A3B32; stroke-width: 2.5; }
-        .zipper { fill: #333; }
+        /* COLORES EXACTOS DE LA IMAGEN */
+        :root {
+            --line-color: #000000;
+            --skin-color: #FAD0B2;
+            --skin-shadow: #E2B294;
+            --suit-yellow: #FEDA2D;
+            --cape-white: #FFFFFF;
+            --cape-shadow: #EBEBEB;
+            --zipper-grey: #444444;
+            --highlight: #FFF3E8;
+        }
 
-        /* Pupilas separadas para animar */
+        /* Estilos de línea estilo Anime */
+        .line {
+            fill: none;
+            stroke: var(--line-color);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        
+        .line-thin {
+            fill: none;
+            stroke: var(--line-color);
+            stroke-width: 1.5;
+            stroke-linecap: round;
+        }
+
+        .skin-fill { fill: var(--skin-color); }
+        .skin-shadow-fill { fill: var(--skin-shadow); }
+        .suit-fill { fill: var(--suit-yellow); }
+        .cape-fill { fill: var(--cape-white); }
+        .cape-shadow-fill { fill: var(--cape-shadow); }
+        .eye-white { fill: #FFFFFF; stroke: var(--line-color); stroke-width: 2; }
+        .pupil { fill: #000000; }
+        .highlight-fill { fill: rgba(255, 255, 255, 0.6); }
+
+        /* Capa de pupilas para movimiento */
         .pupil-group {
             transform-origin: center;
         }
 
-        /* Mensaje flotante */
-        #hint {
-            position: absolute;
-            bottom: 20px;
-            color: #888;
-            font-size: 14px;
+        /* Sombra de la cara oculta inicialmente */
+        .scary-shadow {
+            opacity: 0;
+            fill: rgba(0,0,0,0.3);
             pointer-events: none;
-            opacity: 0.7;
         }
     </style>
 </head>
 <body>
 
-    <div id="saitama-container">
-        <!-- SVG Dibujado a mano basado en la imagen de referencia -->
-        <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+    <div id="canvas-container">
+        <svg viewBox="0 0 500 600" xmlns="http://www.w3.org/2000/svg">
             
-            <!-- CAPA (Fondo) -->
-            <path class="cape-white" d="M120,400 Q80,380 60,320 Q50,290 90,280 L150,300 L120,400 Z" />
-            <path class="cape-white" d="M380,400 Q420,380 440,320 Q450,290 410,280 L350,300 L380,400 Z" />
-
-            <!-- CUELLO -->
-            <path class="skin" d="M200,350 L200,420 L300,420 L300,350" />
+            <!-- 1. CAPA (FONDO) -->
+            <!-- Parte izquierda -->
+            <path class="cape-fill" d="M120,450 Q80,420 60,350 Q55,320 100,300 L150,330" />
+            <path class="line" d="M120,450 Q80,420 60,350 Q55,320 100,300" />
             
-            <!-- SOMBRA CUELLO -->
-            <path class="shadow" d="M200,360 Q250,380 300,360 L300,380 Q250,400 200,380 Z" />
+            <!-- Parte derecha -->
+            <path class="cape-fill" d="M380,450 Q420,420 440,350 Q445,320 400,300 L350,330" />
+            <path class="line" d="M380,450 Q420,420 440,350 Q445,320 400,300" />
 
-            <!-- TRAJE (Hombros) -->
-            <path class="suit-yellow" d="M150,400 Q250,430 350,400 L380,500 L120,500 Z" />
-            
-            <!-- BOTON NEGRO CAPA -->
-            <circle class="black" cx="160" cy="410" r="15" />
-            <circle class="black" cx="340" cy="410" r="15" />
+            <!-- 2. CUERPO (TRAJE AMARILLO) -->
+            <path class="suit-fill" d="M150,450 C130,550 110,600 110,600 L390,600 C390,600 370,550 350,450 L380,550 L120,550 Z" />
+            <!-- Cremallera -->
+            <path style="fill:none; stroke:#333; stroke-width:3" d="M250,480 L250,600" />
+            <path style="fill:#ddd; stroke:#333; stroke-width:2" d="M240,480 L260,480 L255,500 L245,500 Z" /> <!-- Zipper head -->
 
-            <!-- CABEZA (Forma Base) -->
-            <path class="skin" d="M150,250 
-                                  C150,120 180,50 250,50 
-                                  C320,50 350,120 350,250 
-                                  C350,320 320,380 250,380 
-                                  C180,380 150,320 150,250 Z" />
+            <!-- 3. CUELLO -->
+            <path class="skin-fill" d="M190,380 L190,460 L310,460 L310,380" />
+            <!-- Sombra Cuello (Detalle clave) -->
+            <path class="skin-shadow-fill" d="M190,390 Q250,420 310,390 L310,460 L190,460 Z" />
+            <path class="line" d="M190,380 L190,460" /> <!-- Linea cuello izq -->
+            <path class="line" d="M310,380 L310,460" /> <!-- Linea cuello der -->
 
-            <!-- BRILLO CALVA -->
-            <ellipse class="highlight" cx="220" cy="100" rx="20" ry="10" transform="rotate(-30 220 100)" />
+            <!-- 4. BOTONES NEGROS CAPA -->
+            <circle cx="165" cy="460" r="14" fill="#222" stroke="#000" stroke-width="2"/>
+            <circle cx="335" cy="460" r="14" fill="#222" stroke="#000" stroke-width="2"/>
 
-            <!-- OREJA IZQ -->
-            <path class="skin" d="M150,240 C130,240 130,280 150,280" />
-            <path style="fill:none; stroke:#4A3B32; stroke-width:2" d="M145,250 C140,260 145,270 148,270" />
+            <!-- 5. CABEZA (FORMA DE HUEVO EXACTA) -->
+            <g id="head-group">
+                <!-- Cabeza base -->
+                <path class="skin-fill" d="M140,260 
+                                      C140,100 180,30 250,30 
+                                      C320,30 360,100 360,260 
+                                      C360,360 330,420 250,420 
+                                      C170,420 140,360 140,260 Z" />
+                
+                <!-- Borde cabeza -->
+                <path class="line" d="M140,260 
+                                      C140,100 180,30 250,30 
+                                      C320,30 360,100 360,260 
+                                      C360,360 330,420 250,420 
+                                      C170,420 140,360 140,260 Z" />
 
-            <!-- OREJA DER -->
-            <path class="skin" d="M350,240 C370,240 370,280 350,280" />
-            <path style="fill:none; stroke:#4A3B32; stroke-width:2" d="M355,250 C360,260 355,270 352,270" />
+                <!-- Brillo Calva (El óvalo blanco característico) -->
+                <ellipse class="highlight-fill" cx="210" cy="90" rx="25" ry="12" transform="rotate(-35 210 90)" />
 
-            <!-- OJOS (Blancos) -->
-            <!-- Ojo Izquierdo -->
-            <path class="white eye-white" id="eye-l" d="M190,200 Q220,190 240,200 Q240,225 240,230 Q220,240 190,230 Q190,215 190,200 Z" />
-            <!-- Ojo Derecho -->
-            <path class="white eye-white" id="eye-r" d="M260,200 Q290,190 310,200 Q310,215 310,230 Q280,240 260,230 Q260,215 260,200 Z" />
+                <!-- Oreja Izquierda -->
+                <path class="skin-fill" d="M140,250 C120,250 125,300 142,300" />
+                <path class="line" d="M140,250 C120,250 125,300 142,300" />
+                <!-- Detalle oreja -->
+                <path class="line-thin" d="M135,265 C132,275 136,285 140,285" />
 
-            <!-- PUPILAS (Grupo para animar) -->
-            <g id="pupils-container">
-                <circle id="pupil-l" class="black pupil" cx="215" cy="215" r="3" />
-                <circle id="pupil-r" class="black pupil" cx="285" cy="215" r="3" />
+                <!-- Oreja Derecha -->
+                <path class="skin-fill" d="M360,250 C380,250 375,300 358,300" />
+                <path class="line" d="M360,250 C380,250 375,300 358,300" />
+                <!-- Detalle oreja -->
+                <path class="line-thin" d="M365,265 C368,275 364,285 360,285" />
+
+                <!-- Sombra terrorífica (Oculta al inicio) -->
+                <path id="scary-shadow" class="scary-shadow" d="M140,180 Q250,220 360,180 L360,30 L140,30 Z" />
+
+                <!-- 6. CARA -->
+                
+                <!-- Cejas (Lineas finas flotantes) -->
+                <g id="eyebrows">
+                    <path class="line-thin" d="M185,190 Q215,185 245,190" />
+                    <path class="line-thin" d="M255,190 Q285,185 315,190" />
+                </g>
+
+                <!-- Ojos (Forma ovalada aburrida) -->
+                <g id="eyes">
+                    <ellipse id="eye-bg-l" class="eye-white" cx="215" cy="225" rx="28" ry="20" />
+                    <ellipse id="eye-bg-r" class="eye-white" cx="285" cy="225" rx="28" ry="20" />
+                </g>
+
+                <!-- Pupilas (Pequeños puntos negros) -->
+                <g id="pupils">
+                    <circle id="pupil-l" class="pupil" cx="215" cy="225" r="2.5" />
+                    <circle id="pupil-r" class="pupil" cx="285" cy="225" r="2.5" />
+                </g>
+
+                <!-- Nariz (Dos puntitos/linea) -->
+                <path class="line-thin" d="M248,270 L252,275" />
+
+                <!-- Boca (Sonrisa simple) -->
+                <path id="mouth" class="line" d="M220,320 Q250,340 280,320" fill="none" />
+
             </g>
-
-            <!-- CEJAS (Lineas finas) -->
-            <path style="fill:none; stroke:#4A3B32; stroke-width:1.5" d="M190,185 Q215,180 240,185" />
-            <path style="fill:none; stroke:#4A3B32; stroke-width:1.5" d="M260,185 Q285,180 310,185" />
-
-            <!-- NARIZ (Punto simple) -->
-            <path style="fill:none; stroke:#4A3B32; stroke-width:2" d="M248,255 L252,260" />
-
-            <!-- BOCA (Sonrisa simple) -->
-            <path class="black mouth-bg" id="mouth" d="M220,290 Q250,310 280,290 Z" style="fill:#4A3B32; display:none;" /> <!-- Boca abierta oculta -->
-            <path style="fill:none; stroke:#4A3B32; stroke-width:2.5" id="mouth-line" d="M220,290 Q250,310 280,290" /> <!-- Sonrisa linea -->
-
-            <!-- SOMBRA CARA (Sutil) -->
-            <path class="shadow" d="M330,150 Q340,250 330,320 L350,250 Z" style="opacity:0.5" />
-
         </svg>
     </div>
 
-    <div id="hint">Toca la pantalla para molestar a Saitama</div>
-
     <script>
-        const container = document.getElementById('saitama-container');
+        // Referencias al DOM
         const pupilL = document.getElementById('pupil-l');
         const pupilR = document.getElementById('pupil-r');
-        const mouthLine = document.getElementById('mouth-line');
-        const eyebrows = document.querySelectorAll('path[style*="stroke-width:1.5"]');
+        const eyeBgL = document.getElementById('eye-bg-l');
+        const eyeBgR = document.getElementById('eye-bg-r');
+        const mouth = document.getElementById('mouth');
+        const eyebrows = document.getElementById('eyebrows');
+        const scaryShadow = document.getElementById('scary-shadow');
+        const container = document.getElementById('canvas-container');
 
-        let isAngry = false;
-        let idleAnimation;
+        let isSerious = false;
 
-        // Función para parpadeo natural (Idle)
-        function startBlinking() {
-            const eyes = document.querySelectorAll('.eye-white');
-            
-            function blink() {
-                if (isAngry) return; // No parpadear si te está mirando fijamente
-                gsap.to(eyes, { scaleY: 0.1, transformOrigin: "center", duration: 0.1, yoyo: true, repeat: 1 });
-                idleAnimation = setTimeout(blink, Math.random() * 3000 + 2000);
-            }
-            blink();
+        // ANIMACIÓN IDLE (El movimiento aburrido/flotante de las pupilas)
+        function idleAnim() {
+            if(isSerious) return;
+
+            // Movimiento muy sutil y aleatorio de pupilas
+            gsap.to([pupilL, pupilR], {
+                x: "random(-2, 2)",
+                y: "random(-2, 2)",
+                duration: 2,
+                ease: "sine.inOut",
+                onComplete: idleAnim
+            });
         }
+        idleAnim();
 
-        startBlinking();
-
-        // Interacción: Molestar a Saitama
+        // INTERACCIÓN PRINCIPAL
         document.body.addEventListener('click', (e) => {
-            if (isAngry) return; // Si ya está enojado, no hacer nada
-            isAngry = true;
-            clearTimeout(idleAnimation); // Detener parpadeo
+            if(isSerious) return;
+            isSerious = true;
 
-            // 1. Obtener coordenadas del click/toque
-            // Nota: En un SVG plano, "mirar a la pantalla" es mirar al centro y agrandar un poco las pupilas (intimidación)
-            
-            // Secuencia de animación con GSAP
+            // Kill idle animation
+            gsap.killTweensOf([pupilL, pupilR]);
+
+            // SECUENCIA DE "MIRADA FIJA"
             const tl = gsap.timeline({
                 onComplete: () => {
-                    // Volver a la normalidad después de unos segundos
-                    setTimeout(resetSaitama, 3000);
+                    // Mantener la mirada un momento y luego relajar
+                    setTimeout(() => {
+                        relaxFace();
+                    }, 4000);
                 }
             });
 
-            // PASO 1: Congelar la expresión (Neutralizar sonrisa)
-            tl.to(mouthLine, { attr: { d: "M230,300 Q250,300 270,300" }, duration: 0.2 }); // Boca recta
+            // 1. La boca se pone seria (línea recta)
+            tl.to(mouth, { attr: { d: "M230,330 Q250,330 270,330" }, duration: 0.3 });
 
-            // PASO 2: Mover pupilas lentamente hacia el centro (mirada fija al usuario)
+            // 2. Las cejas bajan y se inclinan (Enojo)
+            tl.to(eyebrows, { y: 15, duration: 0.5, ease: "power2.out" }, "<");
+            
+            // 3. Zoom In Lento (Tensión)
+            tl.to(container, { scale: 1.15, duration: 3, ease: "power1.out" }, "<");
+
+            // 4. MOVIMIENTO LENTO DE PUPILAS (Lo que pediste)
+            // Calculamos el centro exacto para que te mire a ti
             tl.to([pupilL, pupilR], {
-                attr: { r: 5 }, // Pupilas se dilatan un poco (intimidación)
-                x: 0, // Centrar si estuvieran movidas
+                x: 0, // Centrar en el ojo
                 y: 0,
-                duration: 0.8,
-                ease: "power2.out"
+                attr: { r: 4 }, // Se dilatan un poco por la intensidad
+                duration: 2, // Movimiento LENTO
+                ease: "power2.inOut" // Movimiento orgánico
             }, "-=0.2");
 
-            // PASO 3: Ceño fruncido y Sombra (Estilo "Serious Series")
-            // Cambiar el estilo de dibujo a algo más serio (bajar cejas, sombrear ojos)
-            
-            // Simular cambio de dibujo en las cejas
-            tl.to(eyebrows[0], { attr: { d: "M190,195 Q215,205 240,205" }, duration: 0.5 }, "-=0.5"); // Ceja Izq baja
-            tl.to(eyebrows[1], { attr: { d: "M260,205 Q285,205 310,195" }, duration: 0.5 }, "-=0.5"); // Ceja Der baja
-
-            // Sombrear la cara (Efecto dramático de anime)
-            const svg = document.querySelector('svg');
-            const shadowOverlay = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            shadowOverlay.setAttribute("d", "M150,200 L350,200 L350,100 L150,100 Z"); // Frente oscurecida
-            shadowOverlay.setAttribute("fill", "rgba(0,0,0,0.2)");
-            shadowOverlay.setAttribute("class", "temp-shadow");
-            // Insertar antes de los ojos para que queden debajo
-            // svg.insertBefore(shadowOverlay, document.getElementById('eye-l'));
-
-            // Zoom In dramático (Opcional, pero genial)
-            tl.to(container, { scale: 1.1, duration: 2, ease: "power1.out" }, "<");
-
+            // 5. Sombra dramática (Estilo manga)
+            tl.to(scaryShadow, { opacity: 1, duration: 1 }, "-=1.5");
         });
 
-        function resetSaitama() {
-            const tl = gsap.timeline();
+        function relaxFace() {
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    isSerious = false;
+                    idleAnim();
+                }
+            });
 
-            // Quitar ceño
-            tl.to(eyebrows[0], { attr: { d: "M190,185 Q215,180 240,185" }, duration: 0.5 });
-            tl.to(eyebrows[1], { attr: { d: "M260,185 Q285,180 310,185" }, duration: 0.5 }, "<");
+            // Quitar sombra
+            tl.to(scaryShadow, { opacity: 0, duration: 0.5 });
 
             // Boca feliz
-            tl.to(mouthLine, { attr: { d: "M220,290 Q250,310 280,290" }, duration: 0.5 }, "<");
+            tl.to(mouth, { attr: { d: "M220,320 Q250,340 280,320" }, duration: 0.5 }, "<");
+
+            // Cejas arriba
+            tl.to(eyebrows, { y: 0, duration: 0.5 }, "<");
 
             // Pupilas normales
-            tl.to([pupilL, pupilR], { attr: { r: 3 }, duration: 0.5 }, "<");
+            tl.to([pupilL, pupilR], { attr: { r: 2.5 }, duration: 0.5 }, "<");
 
-            // Zoom Out
+            // Zoom out
             tl.to(container, { scale: 1, duration: 0.5 }, "<");
-
-            // Reset flags
-            tl.add(() => {
-                isAngry = false;
-                startBlinking();
-            });
         }
 
-        // Efecto de seguimiento suave del mouse (cuando no está enojado)
+        // Efecto Parallax muy sutil al mover mouse (cuando no está serio)
         document.body.addEventListener('mousemove', (e) => {
-            if(isAngry) return;
-
-            const x = (e.clientX / window.innerWidth - 0.5) * 10; // Rango de movimiento limitado
-            const y = (e.clientY / window.innerHeight - 0.5) * 10;
-
-            gsap.to([pupilL, pupilR], {
-                x: x,
-                y: y,
-                duration: 0.5
-            });
+            if(isSerious) return;
+            const x = (e.clientX / window.innerWidth - 0.5) * 5;
+            const y = (e.clientY / window.innerHeight - 0.5) * 5;
+            
+            gsap.to('#head-group', { x: x, y: y, duration: 1 });
         });
 
     </script>
