@@ -638,4 +638,18 @@
             }
 
             this.state = 'IDLE';
-            this.annoyance = Math.max(0, this.annoyance - 2)
+            this.annoyance = Math.max(0, this.annoyance - 2);
+            Object.values(this.chars).forEach(c => {
+                c.turnTo(c.config.faceX, 1.2, Math.random()*0.5);
+                c.express('neutral');
+                c.look(0, 0);
+            });
+            this.timer = setTimeout(() => this.brainLoop(), 2000);
+        }
+    };
+
+    window.onload = () => Director.init();
+
+</script>
+</body>
+</html>
