@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Saitama Final Fix</title>
+    <title>Saitama Aligned</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
         body {
@@ -20,22 +20,16 @@
             user-select: none;
         }
 
-        /* 
-           CLAVE DEL ARREGLO:
-           El contenedor no tiene tamaño fijo. Se expande solo lo que ocupe la imagen.
-           Esto elimina los espacios vacíos que desalineaban los ojos en móvil.
-        */
         #container {
             position: relative;
-            line-height: 0; /* Elimina espacio fantasma debajo de la imagen */
-            display: inline-block; /* Se ajusta al contenido */
+            line-height: 0;
+            display: inline-block;
         }
 
         #saitama-img {
             display: block;
-            /* La imagen manda. Ella decide el tamaño. */
-            max-width: 90vw;  /* No más ancha que la pantalla */
-            max-height: 90vh; /* No más alta que la pantalla */
+            max-width: 90vw;
+            max-height: 90vh;
             width: auto;
             height: auto;
         }
@@ -47,27 +41,25 @@
             overflow: hidden;
             z-index: 10;
             border-radius: 48%; 
-            /* border: 1px solid red; <--- Usa esto si necesitas ver donde están */
+            /* Descomenta la siguiente línea si quieres ver los cuadros rojos y confirmar posición */
+            /* border: 1px solid red; */
         }
 
-        /* --- COORDENADAS FINALES --- */
+        /* --- CORRECCIÓN DE ALINEACIÓN --- */
         
         #eye-left {
-            top: 25.5%;
-            left: 36.5%;
+            top: 26%;      /* Un pelín más abajo para cuadrar con el derecho */
+            left: 37%;
             width: 14%;
             height: 11%;
             transform: rotate(8deg);
         }
 
         #eye-right {
-            top: 29%;
-            /* 
-               CORRECCIÓN DE BIZCO: 
-               Estaba en 58.5%. Lo he movido a 60.5%. 
-               Al alejarlo del centro, la mirada se endereza.
-            */
-            left: 60.5%;   
+            /* BAJADO: Estaba en 29%, ahora 31% para que no quede arriba */
+            top: 31%;
+            /* SEPARADO: Estaba en 60.5%, ahora 63% para quitar lo bizco */
+            left: 63%;   
             width: 13%;
             height: 10%;
             transform: rotate(-5deg);
@@ -80,8 +72,6 @@
             border-radius: 50%;
             width: 11%; 
             height: 15%;
-            
-            /* Centrado absoluto */
             top: 50%; 
             left: 50%;
             transform: translate(-50%, -50%); 
@@ -101,9 +91,8 @@
 <body>
 
     <div id="container">
-        <img id="saitama-img" src="https://raw.githubusercontent.com/Enviado98/Kathy-s-Garden/refs/heads/main/images.png" alt="Saitama">
+        <img id="saitama-img" src="https://i.imgur.com/vHq4V9l.png" alt="Saitama">
         
-        <!-- Ojos -->
         <div id="eye-left" class="eye-socket"><div class="pupil"></div></div>
         <div id="eye-right" class="eye-socket"><div class="pupil"></div></div>
     </div>
@@ -114,8 +103,8 @@
         const pupils = document.querySelectorAll('.pupil');
         let returnTimer = null;
 
-        // 1. ESTADO INICIAL (Mirada perdida)
-        // x: -8, y: -8 (Mirando ligeramente arriba a la izquierda)
+        // 1. ESTADO INICIAL
+        // x: -8, y: -8 (Mirada perdida arriba a la izquierda)
         gsap.set(pupils, { x: -8, y: -8 });
 
         // 2. INTERACCIÓN
@@ -125,7 +114,7 @@
             if(returnTimer) clearTimeout(returnTimer);
             gsap.killTweensOf(pupils);
 
-            // ANIMACIÓN: Mirada Fija al centro
+            // Mirar al frente
             gsap.to(pupils, {
                 x: 0,
                 y: 0,
@@ -133,9 +122,8 @@
                 ease: "power2.out"
             });
 
-            // 3. RETORNO
+            // Retorno
             returnTimer = setTimeout(() => {
-                // Vuelve a mirar a lo lejos
                 gsap.to(pupils, {
                     x: -8, 
                     y: -8,
