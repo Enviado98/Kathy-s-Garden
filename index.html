@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Saitama Fixed</title>
+    <title>Saitama Perfect Eyes</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
         body {
@@ -22,6 +22,7 @@
 
         #container {
             position: relative;
+            /* Usamos vmin para asegurar que la imagen nunca se corte */
             width: 90vmin; 
             height: 90vmin; 
         }
@@ -33,30 +34,31 @@
             pointer-events: none;
         }
 
-        /* CONTENEDORES DE LOS OJOS (Máscaras) */
+        /* CUENCAS DE LOS OJOS ( invisibles pero definen el límite ) */
         .eye-socket {
             position: absolute;
             background: transparent;
             overflow: hidden;
             z-index: 10;
-            border-radius: 50%;
-            /* Debug: border: 1px solid red;  <-- Descomenta esto si quieres ver dónde están los bordes */
+            /* Bordes redondeados para seguir la forma del ojo */
+            border-radius: 45%; 
         }
 
-        /* Ajuste de posición manual para que calce perfecto en la cara */
+        /* --- CALIBRACIÓN EXACTA --- */
+        
         #eye-left {
-            top: 25.5%;
-            left: 36.5%;
-            width: 14%;
-            height: 11%;
+            top: 26%;      /* Bajado un pelín */
+            left: 37%;     /* Ajustado al centro del blanco */
+            width: 13%;
+            height: 10%;
             transform: rotate(8deg);
         }
 
         #eye-right {
-            top: 29%;
-            left: 59%;
-            width: 13%;
-            height: 10%;
+            top: 29.5%;
+            left: 58.5%;   /* MOVIDO A LA DERECHA para quitar lo BIZCO */
+            width: 12.5%;
+            height: 9.5%;
             transform: rotate(-5deg);
         }
 
@@ -66,11 +68,11 @@
             background: #000;
             border-radius: 50%;
             
-            /* Hacemos la pupila pequeña, un punto, como en el anime */
-            width: 12%; 
-            height: 16%;
+            /* Tamaño exacto de punto pequeño */
+            width: 11%; 
+            height: 15%;
             
-            /* CENTRADO PERFECTO INICIAL */
+            /* Centrado absoluto inicial */
             top: 50%; 
             left: 50%;
             transform: translate(-50%, -50%); 
@@ -91,7 +93,6 @@
         <!-- Imagen base -->
         <img id="saitama-img" src="https://raw.githubusercontent.com/Enviado98/Kathy-s-Garden/refs/heads/main/images.png" alt="Saitama">
 
-        <!-- Ojos -->
         <div id="eye-left" class="eye-socket">
             <div class="pupil"></div>
         </div>
@@ -106,40 +107,34 @@
         const pupils = document.querySelectorAll('.pupil');
         let returnTimer = null;
 
-        // COORDENADAS:
-        // x: 0, y: 0  => Mirando directo al alma del espectador (Centro)
-        // x: -12, y: -6 => Mirando "a la nada" (Un poco arriba a la izquierda)
-        
-        // 1. ESTADO INICIAL: Mirando a lo lejos
-        gsap.set(pupils, { x: -12, y: -6 });
+        // 1. ESTADO INICIAL (Mirada perdida)
+        // x: -10, y: -8  -> Mira hacia arriba a la izquierda (distraído)
+        gsap.set(pupils, { x: -10, y: -8 });
 
         // 2. INTERACCIÓN
         document.body.addEventListener('pointerdown', () => {
             
-            // Cancelar cualquier temporizador pendiente para evitar bugs
             if(returnTimer) clearTimeout(returnTimer);
-            // Matar cualquier animación en curso para reaccionar al instante
             gsap.killTweensOf(pupils);
 
-            // ANIMACIÓN: Mirar al espectador
-            // Movimiento suave y lento hacia el centro (0,0)
+            // ANIMACIÓN: Mirar al centro (Espectador)
             gsap.to(pupils, {
-                x: 0,
+                x: 0,   // Centro exacto del contenedor definido en CSS
                 y: 0,
-                duration: 1.5, // 1.5 segundos en girar la vista (lento)
+                duration: 2, // Movimiento muy lento y creepy
                 ease: "power2.out"
             });
 
-            // 3. TEMPORIZADOR PARA VOLVER
+            // 3. RETORNO AUTOMÁTICO
             returnTimer = setTimeout(() => {
                 // Vuelve a mirar a lo lejos
                 gsap.to(pupils, {
-                    x: -12, // Vuelve a la misma coordenada "distraída"
-                    y: -6,
-                    duration: 2, // Vuelve aún más lento, con desinterés
+                    x: -10, 
+                    y: -8,
+                    duration: 2.5,
                     ease: "power2.inOut"
                 });
-            }, 3000); // Espera 3 segundos mirándote fijamente
+            }, 4000); // Se queda mirándote 4 segundos
         });
 
     </script>
