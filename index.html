@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kathy's Garden | Fairy Forest Shop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Vital para móviles -->
+    <title>Kathy's Garden | El Bosque Encantado</title>
     
     <!-- Fuentes Mágicas -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Quicksand:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
@@ -11,487 +11,439 @@
     <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
 
     <style>
-        /* --- VARIABLES DEL BOSQUE ENCANTADO --- */
+        /* --- 1. VARIABLES & RESET --- */
         :root {
-            --forest-deep: #051910;
-            --forest-mid: #0f2e22;
-            --fairy-gold: #ffd700;
-            --fairy-glow: #a7f3d0;
-            --fairy-purple: #c084fc;
-            --text-light: #e2e8f0;
-            --glass-bg: rgba(14, 39, 30, 0.4);
-            --glass-border: rgba(167, 243, 208, 0.15);
-            --card-hover: rgba(167, 243, 208, 0.1);
+            --forest-dark: #1a2f23;     /* Verde oscuro del fondo */
+            --forest-light: #2d4a3e;    /* Verde medio */
+            --mushroom-pink: #ffb7c5;   /* Rosa de los hongos */
+            --magic-gold: #ffeebb;      /* Dorado de la luz */
+            --text-main: #f0fdf4;
+            --glass-bg: rgba(20, 40, 30, 0.65);
+            --glass-border: rgba(255, 183, 197, 0.2); /* Borde rosado sutil */
+            --transition-speed: 0.5s;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
         body {
             font-family: 'Quicksand', sans-serif;
-            background-color: var(--forest-deep);
-            color: var(--text-light);
-            overflow-x: hidden;
-            min-height: 100vh;
+            background-color: var(--forest-dark);
+            color: var(--text-main);
+            overflow-x: hidden; /* Evita scroll horizontal en móvil */
+            width: 100%;
         }
 
-        /* --- TIPOGRAFÍA DE FANTASÍA --- */
-        h1, h2, h3, .brand-font {
-            font-family: 'Cinzel Decorative', cursive;
-            letter-spacing: 1px;
-        }
-        
-        .script-font {
-            font-family: 'Great Vibes', cursive;
-            font-size: 2rem;
-            color: var(--fairy-gold);
-        }
+        /* Tipografías */
+        h1, h2, h3 { font-family: 'Cinzel Decorative', serif; }
+        .script-font { font-family: 'Great Vibes', cursive; }
 
-        /* --- FONDO INMERSIVO (LUCIÉRNAGAS) --- */
-        .forest-bg {
+        /* --- 2. FONDO ANIMADO & PARTÍCULAS (Global) --- */
+        #background-layer {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            background: radial-gradient(circle at 50% 120%, #2d5a4c 0%, var(--forest-deep) 70%);
+            z-index: -2;
             overflow: hidden;
+            background-color: var(--forest-dark);
         }
 
-        .firefly {
-            position: absolute;
-            width: 4px; height: 4px;
-            background: var(--fairy-gold);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--fairy-gold), 0 0 20px var(--fairy-glow);
-            animation: fly 15s infinite linear;
-            opacity: 0;
-        }
-
-        /* Generamos movimiento aleatorio para las luciérnagas */
-        @keyframes fly {
-            0% { transform: translate(0, 100vh) scale(0); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translate(100px, -10vh) scale(1); opacity: 0; }
-        }
-
-        .firefly:nth-child(1) { left: 10%; animation-duration: 12s; animation-delay: 0s; }
-        .firefly:nth-child(2) { left: 30%; animation-duration: 15s; animation-delay: 2s; }
-        .firefly:nth-child(3) { left: 70%; animation-duration: 10s; animation-delay: 1s; }
-        .firefly:nth-child(4) { left: 90%; animation-duration: 18s; animation-delay: 4s; }
-        .firefly:nth-child(5) { left: 50%; animation-duration: 20s; animation-delay: 3s; }
-        .firefly:nth-child(6) { left: 20%; animation-duration: 14s; animation-delay: 6s; }
-        .firefly:nth-child(7) { left: 80%; animation-duration: 16s; animation-delay: 5s; }
-
-        /* --- GLASSMORPHISM OSCURO --- */
-        .glass {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-
-        /* --- HEADER --- */
-        header {
-            position: fixed;
-            top: 0; width: 100%;
-            padding: 20px 5%;
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: 0.4s;
-        }
-
-        .brand {
-            font-size: 1.8rem;
-            color: var(--fairy-gold);
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        nav ul { display: flex; gap: 30px; list-style: none; }
-        nav a { 
-            color: var(--text-light); text-decoration: none; 
-            font-weight: 500; transition: 0.3s;
-            position: relative;
-        }
-        
-        nav a::after {
-            content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px;
-            background: var(--fairy-gold); transition: 0.3s;
-        }
-        nav a:hover::after { width: 100%; }
-
-        .cart-wrapper { position: relative; cursor: pointer; color: var(--fairy-gold); }
-        .cart-count {
-            position: absolute; top: -8px; right: -8px;
-            background: var(--fairy-purple); color: white;
-            font-size: 0.7rem; width: 18px; height: 18px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        /* --- HERO --- */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 120px 20px 0;
-            position: relative;
-        }
-
-        .hero-glass-box {
-            padding: 50px;
-            border-radius: 30px; /* Bordes muy redondeados */
-            max-width: 900px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .hero h1 {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            background: linear-gradient(to right, #fff, var(--fairy-glow));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            line-height: 1.2;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            color: #cbd5e1;
-            margin-bottom: 30px;
-            font-weight: 300;
-        }
-
-        .btn-magic {
-            background: linear-gradient(45deg, var(--forest-mid), #1a4d3a);
-            border: 1px solid var(--fairy-gold);
-            color: var(--fairy-gold);
-            padding: 15px 40px;
-            font-family: 'Cinzel Decorative', cursive;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: 0.4s;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-magic:hover {
-            background: var(--fairy-gold);
-            color: var(--forest-deep);
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
-            transform: translateY(-3px);
-        }
-
-        /* --- SHOP GRID --- */
-        .shop-section { padding: 80px 10%; position: relative; }
-        
-        .section-title {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-        
-        .section-title h2 { font-size: 3rem; color: var(--text-light); }
-        .section-title span { color: var(--fairy-purple); }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 40px;
-        }
-
-        .card {
-            border-radius: 20px;
-            overflow: hidden;
-            transition: 0.4s;
-            position: relative;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, transparent 0%, rgba(5, 25, 16, 0.8) 100%);
-            z-index: 1;
-        }
-
-        .card:hover {
-            transform: translateY(-10px);
-            border-color: var(--fairy-gold);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-        }
-
-        .card-img {
-            height: 300px;
-            width: 100%;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .card-img img {
-            width: 100%;
-            height: 100%;
+        /* La imagen de fondo que respira */
+        .breathing-bg {
+            width: 100%; height: 100%;
             object-fit: cover;
-            transition: 0.6s;
+            object-position: center;
+            animation: breathe 20s ease-in-out infinite alternate;
+            filter: brightness(0.7); /* Oscurecer un poco para leer texto */
         }
 
-        .card:hover .card-img img { transform: scale(1.1); }
-
-        .card-content {
-            padding: 20px;
-            position: relative;
-            z-index: 2;
+        @keyframes breathe {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
         }
 
-        .card-title { font-size: 1.4rem; color: #fff; margin-bottom: 5px; }
-        .card-price { 
-            font-size: 1.2rem; color: var(--fairy-gold); 
-            font-family: 'Cinzel Decorative', cursive; 
-        }
-
-        .card-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-        }
-
-        .add-btn {
-            background: transparent;
-            border: 1px solid var(--text-light);
-            color: var(--text-light);
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .add-btn:hover {
-            background: var(--fairy-gold);
-            border-color: var(--fairy-gold);
-            color: var(--forest-deep);
-        }
-
-        /* --- DECORACIONES FLOTANTES --- */
-        .floating-leaf {
-            position: absolute;
-            opacity: 0.1;
+        /* Capa de partículas */
+        .particles-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
             pointer-events: none;
         }
 
-        /* --- FOOTER --- */
-        footer {
-            margin-top: 100px;
-            padding: 60px 5%;
-            border-top: 1px solid var(--glass-border);
-            text-align: center;
+        .particle {
+            position: absolute;
+            background: var(--magic-gold);
+            border-radius: 50%;
+            opacity: 0;
+            box-shadow: 0 0 10px var(--magic-gold);
+            animation: floatUp 10s linear infinite;
         }
 
-        /* --- RESPONSIVE --- */
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            nav { display: none; } /* Oculto para demo simple */
-            .header-icons { margin-left: auto; }
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            20% { opacity: 0.8; }
+            80% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
         }
+
+        /* --- 3. LANDING PAGE (Entrada) --- */
+        #landing-page {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: radial-gradient(circle, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%);
+            transition: opacity 1.5s ease;
+            padding: 20px;
+        }
+
+        .landing-content h1 {
+            font-size: clamp(3rem, 10vw, 6rem); /* Responsivo: min 3rem, max 6rem */
+            color: var(--text-main);
+            text-shadow: 0 0 20px rgba(255, 183, 197, 0.5);
+            margin-bottom: 10px;
+            line-height: 1.1;
+        }
+
+        .landing-content p {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            color: var(--mushroom-pink);
+            margin-bottom: 40px;
+        }
+
+        .enter-btn {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--mushroom-pink);
+            color: var(--text-main);
+            border-radius: 50px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s;
+            font-family: 'Cinzel Decorative', serif;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(255, 183, 197, 0.2);
+        }
+
+        .enter-btn:hover {
+            background: var(--mushroom-pink);
+            color: var(--forest-dark);
+            box-shadow: 0 0 40px rgba(255, 183, 197, 0.6);
+            transform: scale(1.05);
+        }
+
+        /* --- 4. SITIO PRINCIPAL (Oculto al inicio) --- */
+        #main-site {
+            display: none; /* Se activa con JS */
+            opacity: 0;
+            transition: opacity 2s ease;
+            padding-top: 80px; /* Espacio para el header fijo */
+        }
+
+        /* Estilo Glassmorphism Reutilizable */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            z-index: 500;
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.3s;
+        }
+
+        header.scrolled {
+            background: rgba(26, 47, 35, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 10px 5%;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            color: var(--mushroom-pink);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .header-icons { font-size: 1.5rem; display: flex; gap: 15px; }
+
+        /* Secciones */
+        section {
+            padding: 60px 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .welcome-msg {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .welcome-msg h2 { font-size: 2.5rem; margin-bottom: 10px; color: var(--magic-gold); }
+
+        /* Grid de Productos - CORREGIDO PARA MÓVIL */
+        .product-grid {
+            display: grid;
+            /* Móvil: columnas automáticas pero mínimo 160px (2 columnas en la mayoría de móviles) */
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .product-grid {
+                /* Tablet/PC: cartas más grandes */
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+                gap: 30px;
+            }
+        }
+
+        .product-card {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: transform 0.3s;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--magic-gold);
+        }
+
+        .img-container {
+            width: 100%;
+            aspect-ratio: 1 / 1.2; /* Mantiene proporción vertical */
+            overflow: hidden;
+            position: relative;
+        }
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .product-card:hover .img-container img { transform: scale(1.1); }
+
+        .info { padding: 15px; text-align: center; }
+        
+        .info h3 { 
+            font-size: 1.1rem; 
+            margin-bottom: 5px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+
+        .price { 
+            color: var(--magic-gold); 
+            font-weight: bold; 
+            font-size: 1.2rem; 
+            font-family: 'Cinzel Decorative', cursive;
+        }
+
+        .buy-btn {
+            margin-top: 10px;
+            width: 100%;
+            padding: 8px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--mushroom-pink);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        
+        .buy-btn:hover { background: var(--mushroom-pink); color: var(--forest-dark); }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 50px;
+            background: rgba(0,0,0,0.3);
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
     </style>
 </head>
 <body>
 
-    <!-- Fondo Mágico con Luciérnagas -->
-    <div class="forest-bg">
-        <div class="firefly"></div>
-        <div class="firefly"></div>
-        <div class="firefly"></div>
-        <div class="firefly"></div>
-        <div class="firefly"></div>
-        <div class="firefly"></div>
-        <div class="firefly"></div>
+    <!-- 1. FONDO Y PARTÍCULAS (Se quedan fijos) -->
+    <div id="background-layer">
+        <!-- AQUÍ VA TU IMAGEN DE FONDO (background.jpg) -->
+        <img src="background.jpg" alt="Fondo Mágico" class="breathing-bg" onerror="this.src='https://images.unsplash.com/photo-1596711680572-c1168eb518d6?q=80&w=1974&auto=format&fit=crop'"> <!-- Placeholder por si acaso falla tu imagen local -->
     </div>
 
-    <!-- Navegación -->
-    <header id="navbar" class="glass">
-        <a href="#" class="brand brand-font">
-            <i class="ri-plant-line" style="color: var(--fairy-gold);"></i> Kathy's Garden
-        </a>
-        
-        <nav>
-            <ul>
-                <li><a href="#inicio">El Jardín</a></li>
-                <li><a href="#shop">Colección Mágica</a></li>
-                <li><a href="#care">Grimorio</a></li>
-            </ul>
-        </nav>
+    <div class="particles-container" id="particles">
+        <!-- Las partículas se generan con JS -->
+    </div>
 
-        <div style="display: flex; gap: 20px; font-size: 1.2rem;">
-            <i class="ri-search-2-line" style="cursor: pointer;"></i>
-            <div class="cart-wrapper" onclick="toggleCart()">
-                <i class="ri-shopping-basket-2-line"></i>
-                <span class="cart-count">0</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Hero Section -->
-    <section id="inicio" class="hero">
-        <!-- Decoración flotante -->
-        <img src="https://i.ibb.co/6nPz9qg/leaf-shadow.png" class="floating-leaf" style="top: 10%; right: -5%; width: 400px; transform: rotate(45deg);">
-
-        <div class="hero-glass-box glass">
-            <p class="script-font">Bienvenido al bosque...</p>
-            <h1>Donde la naturaleza <br> guarda sus <span style="color: var(--fairy-gold);">secretos</span>.</h1>
-            <p>Descubre plantas exóticas, terrarios encantados y botánica rara para transformar tu hogar en un santuario etéreo.</p>
-            <a href="#shop" class="btn-magic">Explorar el Jardín</a>
+    <!-- 2. PANTALLA DE BIENVENIDA (Landing) -->
+    <section id="landing-page">
+        <div class="landing-content">
+            <p class="script-font">Bienvenido a</p>
+            <h1>Kathy's Garden</h1>
+            <p class="script-font" style="font-size: 1.2rem; opacity: 0.8; margin-bottom: 20px;">Donde la magia florece</p>
+            <button class="enter-btn" onclick="enterGarden()">Entrar al Jardín</button>
         </div>
     </section>
 
-    <!-- Shop Section -->
-    <section id="shop" class="shop-section">
-        <div class="section-title">
-            <h2 class="brand-font">Tesoros Botánicos</h2>
-            <p class="script-font" style="font-size: 1.5rem; margin-top: 10px; color: var(--fairy-glow);">Curados por hadas, cuidados para ti</p>
-        </div>
-
-        <div class="grid">
-            <!-- Producto 1 -->
-            <div class="card glass">
-                <div class="card-img">
-                    <img src="https://images.unsplash.com/photo-1598533633653-a55e2d3089d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Alocasia">
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title brand-font">Alocasia Dragón</h3>
-                    <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 10px;">Escamas plateadas y místicas</p>
-                    <div class="card-actions">
-                        <span class="card-price">$45.00</span>
-                        <button class="add-btn" onclick="addToCart(this)"><i class="ri-add-line"></i></button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Producto 2 -->
-            <div class="card glass">
-                <div class="card-img">
-                    <img src="https://images.unsplash.com/photo-1628151016029-4d6910a43e4b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Begonia">
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title brand-font">Begonia Maculata</h3>
-                    <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 10px;">Polka dots de fantasía</p>
-                    <div class="card-actions">
-                        <span class="card-price">$32.00</span>
-                        <button class="add-btn" onclick="addToCart(this)"><i class="ri-add-line"></i></button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Producto 3 -->
-            <div class="card glass">
-                <div class="card-img">
-                    <img src="https://images.unsplash.com/photo-1545165375-1b744a7bb672?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Fern">
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title brand-font">Helecho Blue Star</h3>
-                    <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 10px;">Follaje azulado etéreo</p>
-                    <div class="card-actions">
-                        <span class="card-price">$28.00</span>
-                        <button class="add-btn" onclick="addToCart(this)"><i class="ri-add-line"></i></button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Producto 4 -->
-            <div class="card glass">
-                <div class="card-img">
-                    <img src="https://images.unsplash.com/photo-1616688758832-7208e92f58e4?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Orquidea">
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title brand-font">Orquídea Fantasma</h3>
-                    <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 10px;">Rareza botánica pura</p>
-                    <div class="card-actions">
-                        <span class="card-price">$65.00</span>
-                        <button class="add-btn" onclick="addToCart(this)"><i class="ri-add-line"></i></button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Sección de Confianza -->
-    <section style="padding: 0 10%; margin-bottom: 80px;">
-        <div class="glass" style="padding: 40px; border-radius: 20px; display: flex; flex-wrap: wrap; justify-content: space-around; text-align: center; gap: 30px;">
-            <div>
-                <i class="ri-sparkling-2-line" style="font-size: 2.5rem; color: var(--fairy-gold);"></i>
-                <h3 style="margin: 10px 0;">Magia Pura</h3>
-                <p style="font-size: 0.9rem; max-width: 200px;">Plantas sanas cultivadas con amor y polvo de hadas.</p>
-            </div>
-            <div>
-                <i class="ri-e-bike-2-line" style="font-size: 2.5rem; color: var(--fairy-glow);"></i>
-                <h3 style="margin: 10px 0;">Envío Encantado</h3>
-                <p style="font-size: 0.9rem; max-width: 200px;">Llegamos a tu puerta más rápido que un colibrí.</p>
-            </div>
-            <div>
-                <i class="ri-magic-line" style="font-size: 2.5rem; color: var(--fairy-purple);"></i>
-                <h3 style="margin: 10px 0;">Garantía Mística</h3>
-                <p style="font-size: 0.9rem; max-width: 200px;">Si no florece la felicidad, lo arreglamos.</p>
-            </div>
-        </div>
-    </section>
-
-    <footer class="glass">
-        <h2 class="brand-font" style="color: var(--fairy-gold); font-size: 2rem;">Kathy's Garden</h2>
-        <p class="script-font" style="margin-bottom: 20px;">Donde los sueños echan raíces</p>
+    <!-- 3. CONTENIDO PRINCIPAL (Tienda) -->
+    <div id="main-site">
         
-        <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; font-size: 1.5rem;">
-            <i class="ri-instagram-line" style="cursor: pointer; color: var(--fairy-purple);"></i>
-            <i class="ri-facebook-circle-fill" style="cursor: pointer; color: var(--text-light);"></i>
-            <i class="ri-pinterest-fill" style="cursor: pointer; color: var(--fairy-gold);"></i>
-        </div>
-        
-        <p style="font-size: 0.8rem; opacity: 0.6;">&copy; 2024 Kathy's Garden. Diseñado con magia.</p>
-    </footer>
+        <header id="main-header">
+            <a href="#" class="brand">Kathy's Garden</a>
+            <div class="header-icons">
+                <i class="ri-search-line"></i>
+                <i class="ri-shopping-bag-3-line"></i>
+            </div>
+        </header>
 
-    <!-- Scripts -->
+        <section>
+            <div class="welcome-msg">
+                <div class="glass-panel" style="padding: 30px; display: inline-block;">
+                    <h2>Colección del Bosque</h2>
+                    <p>Plantas raras y hongos mágicos seleccionados para ti.</p>
+                </div>
+            </div>
+
+            <div class="product-grid">
+                
+                <!-- PRODUCTO 1: imagen1.jpg -->
+                <article class="product-card glass-panel">
+                    <div class="img-container">
+                        <!-- Intenta cargar imagen1.jpg, si no existe, usa una de internet -->
+                        <img src="imagen1.jpg" alt="Producto 1" onerror="this.src='https://images.unsplash.com/photo-1615568101458-132d7593c289?auto=format&fit=crop&w=400&q=80'">
+                    </div>
+                    <div class="info">
+                        <h3>Hongo Luminoso</h3>
+                        <div class="price">$25.00</div>
+                        <button class="buy-btn">Añadir</button>
+                    </div>
+                </article>
+
+                <!-- PRODUCTO 2: imagen2.jpg -->
+                <article class="product-card glass-panel">
+                    <div class="img-container">
+                        <img src="imagen2.jpg" alt="Producto 2" onerror="this.src='https://images.unsplash.com/photo-1627915576156-3c224213d2d1?auto=format&fit=crop&w=400&q=80'">
+                    </div>
+                    <div class="info">
+                        <h3>Begonia Mística</h3>
+                        <div class="price">$32.00</div>
+                        <button class="buy-btn">Añadir</button>
+                    </div>
+                </article>
+
+                <!-- PRODUCTO 3: imagen3.jpg -->
+                <article class="product-card glass-panel">
+                    <div class="img-container">
+                        <img src="imagen3.jpg" alt="Producto 3" onerror="this.src='https://images.unsplash.com/photo-1616688758832-7208e92f58e4?auto=format&fit=crop&w=400&q=80'">
+                    </div>
+                    <div class="info">
+                        <h3>Orquídea Fantasma</h3>
+                        <div class="price">$45.00</div>
+                        <button class="buy-btn">Añadir</button>
+                    </div>
+                </article>
+
+                <!-- PRODUCTO 4: imagen4.jpg -->
+                <article class="product-card glass-panel">
+                    <div class="img-container">
+                        <img src="imagen4.jpg" alt="Producto 4" onerror="this.src='https://images.unsplash.com/photo-1598533633653-a55e2d3089d8?auto=format&fit=crop&w=400&q=80'">
+                    </div>
+                    <div class="info">
+                        <h3>Alocasia Dragón</h3>
+                        <div class="price">$50.00</div>
+                        <button class="buy-btn">Añadir</button>
+                    </div>
+                </article>
+
+                <!-- Puedes copiar y pegar más bloques <article> y cambiar el nombre de la imagen -->
+
+            </div>
+        </section>
+
+        <footer>
+            <p class="script-font" style="font-size: 1.5rem; color: var(--mushroom-pink);">Gracias por visitar</p>
+            <p>&copy; 2024 Kathy's Garden. Hecho con magia.</p>
+        </footer>
+    </div>
+
+    <!-- SCRIPTS -->
     <script>
-        // Efecto Navbar Scroll
+        // 1. Generar Partículas
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 20; // Cantidad de partículas
+
+            for (let i = 0; i < particleCount; i++) {
+                const p = document.createElement('div');
+                p.classList.add('particle');
+                
+                // Posición y tamaño aleatorio
+                const size = Math.random() * 4 + 2 + 'px';
+                p.style.width = size;
+                p.style.height = size;
+                p.style.left = Math.random() * 100 + 'vw';
+                p.style.animationDuration = (Math.random() * 10 + 10) + 's'; // Entre 10 y 20 segundos
+                p.style.animationDelay = Math.random() * 5 + 's';
+                
+                container.appendChild(p);
+            }
+        }
+
+        // 2. Función para entrar al jardín (Transición)
+        function enterGarden() {
+            const landing = document.getElementById('landing-page');
+            const mainSite = document.getElementById('main-site');
+            
+            // Desvanecer landing
+            landing.style.opacity = '0';
+            
+            // Esperar a que termine la animación css (1.5s)
+            setTimeout(() => {
+                landing.style.display = 'none';
+                
+                // Mostrar sitio principal
+                mainSite.style.display = 'block';
+                // Pequeño delay para permitir que el display:block renderice antes de cambiar opacidad
+                setTimeout(() => {
+                    mainSite.style.opacity = '1';
+                }, 50);
+                
+            }, 1000);
+        }
+
+        // 3. Efecto Header al hacer scroll
         window.addEventListener('scroll', () => {
-            const navbar = document.getElementById('navbar');
+            const header = document.getElementById('main-header');
             if (window.scrollY > 50) {
-                navbar.style.background = 'rgba(5, 25, 16, 0.9)';
-                navbar.style.padding = '15px 5%';
+                header.classList.add('scrolled');
             } else {
-                navbar.style.background = 'rgba(14, 39, 30, 0.4)';
-                navbar.style.padding = '20px 5%';
+                header.classList.remove('scrolled');
             }
         });
 
-        // Carrito
-        let count = 0;
-        const cartCount = document.querySelector('.cart-count');
+        // Iniciar
+        createParticles();
 
-        function addToCart(btn) {
-            count++;
-            cartCount.innerText = count;
-            
-            // Animación del botón
-            btn.innerHTML = '<i class="ri-check-line"></i>';
-            btn.style.background = 'var(--fairy-gold)';
-            btn.style.color = 'var(--forest-deep)';
-            
-            setTimeout(() => {
-                btn.innerHTML = '<i class="ri-add-line"></i>';
-                btn.style.background = 'transparent';
-                btn.style.color = 'var(--text-light)';
-            }, 1000);
-        }
     </script>
 </body>
 </html>
