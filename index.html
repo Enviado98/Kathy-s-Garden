@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gossip Gang v1.1: Paranoia</title>
+    <title>Gossip Gang: Ultimate</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
         :root {
             --bg: #e8e8f2;
             --purple: #6a1b9a;
             --black: #212121;
-            --orange: #ff6f00;
+            --orange: #ff6f00; /* Naranja fuerte */
             --yellow: #fdd835;
         }
 
-        /* --- CORE SETUP --- */
+        /* --- 1. CORE & NO-SELECT (Fix del Azul) --- */
         * {
             box-sizing: border-box;
-            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            -webkit-tap-highlight-color: rgba(0,0,0,0); /* CLAVE: Quita el azul */
             -webkit-touch-callout: none;
             user-select: none;
             -webkit-user-select: none;
@@ -32,28 +32,30 @@
             justify-content: center;
             align-items: center;
             font-family: sans-serif;
-            touch-action: none;
+            touch-action: none; /* Bloqueo gestos nativos */
         }
 
+        /* --- ESCENARIO --- */
         .stage {
             position: relative;
             width: 340px;
             height: 320px;
-            pointer-events: none;
+            pointer-events: none; /* Dejamos pasar clicks a los bichos */
         }
 
-        /* --- PERSONAJES --- */
+        /* --- ESTRUCTURA DE PERSONAJE --- */
         .char-wrapper {
             position: absolute;
             bottom: 0;
-            pointer-events: auto;
-            overflow: hidden;
+            pointer-events: auto; /* Reactivar clicks */
+            overflow: hidden; /* Mantiene la cara dentro del cuerpo */
             transform-origin: bottom center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            transition: z-index 0s; 
+            transition: transform 0.1s;
             will-change: transform;
         }
 
+        /* Contenedor deslizante de la cara (Parallax) */
         .face-layer {
             position: absolute;
             top: 0; left: 0;
@@ -90,8 +92,7 @@
             background: inherit; 
             z-index: 10;
         }
-        
-        /* Fix colores párpados */
+        /* Fix Safari Colors */
         .c-purple .eyelid { background: var(--purple); }
         .c-black .eyelid { background: var(--black); }
         .c-orange .eyelid { background: var(--orange); }
@@ -105,7 +106,9 @@
             border-radius: 10px;
         }
 
-        /* --- ESTILOS INDIVIDUALES --- */
+        /* --- DISEÑOS INDIVIDUALES --- */
+
+        /* MORADO (Líder) */
         #purple {
             left: 30px; bottom: 90px;
             width: 90px; height: 200px;
@@ -117,6 +120,7 @@
         #purple .eye { width: 20px; height: 20px; }
         #purple .mouth { top: 95px; width: 20px; height: 4px; }
 
+        /* NEGRO (Hater) */
         #black {
             left: 140px; bottom: 80px;
             width: 80px; height: 160px;
@@ -128,6 +132,7 @@
         #black .eye { width: 16px; height: 16px; }
         #black .mouth { top: 80px; width: 12px; height: 2px; background: #666; }
 
+        /* AMARILLO (Nervioso) */
         #yellow {
             right: 20px; bottom: 0;
             width: 80px; height: 130px;
@@ -140,26 +145,33 @@
         #yellow .pupil { display: none; }
         #yellow .mouth { top: 65px; width: 15px; height: 3px; }
 
+        /* NARANJA (Gordito - De Espaldas) */
         #orange {
             left: -10px; bottom: 0;
             width: 190px; height: 110px;
             background: var(--orange);
             border-radius: 95px 95px 10px 10px;
-            z-index: 30;
+            z-index: 30; /* Al frente */
         }
         #orange .eyes-row { top: 35px; justify-content: center; gap: 20px; }
         #orange .eye { width: 15px; height: 15px; }
         #orange .mouth { top: 65px; width: 25px; height: 5px; }
 
-        /* PARTICULAS */
+        /* --- PARTÍCULAS --- */
         .spit {
-            position: fixed; width: 12px; height: 12px;
-            background: #a0e0ff; border-radius: 50%;
-            border: 2px solid #fff; pointer-events: none; z-index: 9999;
+            position: fixed;
+            width: 12px; height: 12px;
+            background: #a0e0ff;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            pointer-events: none;
+            z-index: 9999;
         }
         .sweat {
-            position: absolute; width: 8px; height: 12px;
-            background: #00d2ff; border-radius: 0 50% 50% 50%;
+            position: absolute;
+            width: 8px; height: 12px;
+            background: #00d2ff;
+            border-radius: 0 50% 50% 50%;
             transform: rotate(45deg);
         }
 
@@ -171,20 +183,23 @@
 
 <script>
     /**
-     * CONFIGURACIÓN DE PERSONAJES
-     * leanDir: Dirección de inclinación para cuchichear (-1 izq, 1 der)
+     * MOTOR DE COMPORTAMIENTO "LIVING TOYS"
      */
+
+    // Configuración Inicial
+    // faceX: Posición inicial de la cara (0=centro, >100=oculta/espalda)
     const CHARS_CONFIG = [
-        { id: 'purple', type: 'rect', faceX: 30,  leanDir: 5 },
-        { id: 'black',  type: 'rect', faceX: 0,   leanDir: 2 },
-        { id: 'yellow', type: 'round', faceX: -20, leanDir: -5 },
-        { id: 'orange', type: 'fat',   faceX: 200, leanDir: 2 } 
+        { id: 'purple', type: 'rect', faceX: 30,  role: 'leader' },
+        { id: 'black',  type: 'rect', faceX: 0,   role: 'hater' },
+        { id: 'yellow', type: 'round', faceX: -20, role: 'nervous' },
+        { id: 'orange', type: 'fat',   faceX: 200, role: 'fat' } // 200 = Totalmente de espaldas
     ];
 
     class Character {
         constructor(config, stage) {
             this.id = config.id;
             this.config = config;
+            this.role = config.role;
             this.currentFaceX = config.faceX;
             this.isTalking = false;
 
@@ -194,13 +209,17 @@
             this.eyelids = this.el.querySelectorAll('.eyelid');
             this.mouth = this.el.querySelector('.mouth');
 
+            // Set inicial
             gsap.set(this.face, { x: this.currentFaceX });
             
+            // Ciclos de vida
             this.breathe();
             this.blink();
 
+            // Interacción Individual
             this.el.addEventListener('pointerdown', (e) => {
-                e.stopPropagation(); e.preventDefault();
+                e.stopPropagation(); // Evita tocar el fondo
+                e.preventDefault(); // Evita selección
                 Director.handleCharTouch(this);
             });
         }
@@ -222,18 +241,25 @@
             return div;
         }
 
-        // --- MOVIMIENTO ---
+        // --- SISTEMA DE MOVIMIENTO ---
+
+        // Mueve la cara entera (Giro de cabeza/cuerpo)
         turnTo(targetX, speed = 1, delay = 0) {
             this.currentFaceX = targetX;
-            gsap.to(this.face, { x: targetX, duration: speed, delay: delay, ease: "power2.inOut" });
+            gsap.to(this.face, {
+                x: targetX,
+                duration: speed,
+                delay: delay,
+                ease: "power2.inOut"
+            });
         }
 
-        look(x, y, speed = 0.3) {
-            if(this.id !== 'yellow') gsap.to(this.pupils, { x: x, y: y, duration: speed });
-        }
-
-        lean(angle, duration = 0.5) {
-            gsap.to(this.el, { rotation: angle, duration: duration, ease: "back.out(1.2)" });
+        // Mueve solo las pupilas (Mirada)
+        look(x, y) {
+            // El amarillo no tiene pupilas
+            if(this.id !== 'yellow') {
+                gsap.to(this.pupils, { x: x, y: y, duration: 0.3 });
+            }
         }
 
         express(mood) {
@@ -252,38 +278,27 @@
             } else if (mood === 'happy') {
                 gsap.to(this.eyelids, { height: '0%', duration: 0.3 });
                 gsap.to(this.mouth, { borderRadius: '0 0 20px 20px', height: 8, width: 18, duration: 0.3 });
-            } else { // Neutral
+            } else {
+                // Neutral
                 gsap.to(this.eyelids, { height: '0%', duration: 0.5 });
                 const w = this.id === 'yellow' ? 15 : (this.id === 'orange' ? 25 : 15);
                 gsap.to(this.mouth, { width: w, height: 4, borderRadius: '5px', x: 0, duration: 0.5 });
             }
         }
 
-        // --- GESTOS SOCIALES ---
-        nod() {
-            gsap.to(this.el, { y: 3, duration: 0.15, yoyo: true, repeat: 1 });
-        }
-
-        shakeHead() {
-            gsap.to(this.face, { x: "+=3", duration: 0.1, yoyo: true, repeat: 3 });
-        }
-
-        talk(isWhispering = false) {
+        talk() {
             if(this.isTalking) return;
             this.isTalking = true;
             
+            // Si está de espaldas (Gordito), no mueve la boca, mueve el cuerpo
             if(this.id === 'orange' && this.currentFaceX > 100) {
-                // Si está de espaldas, rebota
-                this.bodyTalk = gsap.to(this.el, { y: -2, scaleY: 1.01, duration: 0.2, yoyo: true, repeat: -1 });
+                this.bodyTalk = gsap.to(this.el, { y: -3, scaleY: 1.02, duration: 0.2, yoyo: true, repeat: -1 });
                 return;
             }
 
-            const speed = isWhispering ? 0.1 : 0.15;
-            const size = isWhispering ? "+=1" : "+=4";
-
             this.mouthTalk = gsap.to(this.mouth, { 
-                height: size, width: "+=2", 
-                duration: speed, repeat: -1, yoyo: true 
+                height: "+=4", width: "+=2", 
+                duration: 0.15, repeat: -1, yoyo: true 
             });
         }
 
@@ -295,26 +310,43 @@
             this.express('neutral');
         }
 
-        // --- ACCIONES FX ---
+        // --- ACCIONES ESPECIALES ---
+        
         spit() {
+            // Acción exclusiva del Negro
             this.express('angry');
+            // Cargar hacia atrás
             gsap.to(this.el, { scale: 0.9, y: 5, duration: 0.3, onComplete: () => {
+                // Disparar hacia adelante
                 gsap.to(this.el, { scale: 1.1, y: -5, duration: 0.1, yoyo: true, repeat: 1 });
+                
+                // Crear partícula
                 const spit = document.createElement('div');
                 spit.className = 'spit';
                 const rect = this.mouth.getBoundingClientRect();
-                spit.style.left = rect.left + 'px'; spit.style.top = rect.top + 'px';
+                spit.style.left = rect.left + 'px';
+                spit.style.top = rect.top + 'px';
                 document.body.appendChild(spit);
+
+                // Volar hacia la cámara
                 gsap.to(spit, {
-                    scale: 6, opacity: 0, top: window.innerHeight/2, left: window.innerWidth/2,
-                    duration: 0.5, ease: "power2.in", onComplete: () => spit.remove()
+                    scale: 5,
+                    opacity: 0,
+                    top: window.innerHeight / 2,
+                    left: window.innerWidth / 2,
+                    duration: 0.5,
+                    ease: "power2.in",
+                    onComplete: () => spit.remove()
                 });
             }});
         }
 
         shiver() {
+            // Acción exclusiva del Amarillo
             this.express('shock');
             gsap.to(this.el, { x: 2, duration: 0.05, repeat: 10, yoyo: true });
+            
+            // Gotita de sudor
             const sweat = document.createElement('div');
             sweat.className = 'sweat';
             this.el.appendChild(sweat);
@@ -322,235 +354,214 @@
             gsap.to(sweat, { top: 20, opacity: 0, duration: 1, onComplete: () => sweat.remove() });
         }
 
+        laugh() {
+            // El gordito se ríe
+            this.express('happy');
+            gsap.to(this.el, { scaleX: 1.05, scaleY: 0.95, duration: 0.2, repeat: 3, yoyo: true });
+        }
+
+        // --- VIDA AUTÓNOMA ---
         breathe() {
             const rate = Math.random() * 1 + 2;
-            gsap.to(this.el, { scaleY: 1.015, y: -1, duration: rate, repeat: -1, yoyo: true, ease: "sine.inOut" });
+            gsap.to(this.el, { 
+                scaleY: 1.015, y: -1, 
+                duration: rate, repeat: -1, yoyo: true, ease: "sine.inOut" 
+            });
         }
 
         blink() {
+            const next = Math.random() * 4000 + 2000;
             setTimeout(() => {
+                // No parpadear si está furioso
                 gsap.to(this.eyelids, { height: '100%', duration: 0.1, yoyo: true, repeat: 1 });
                 this.blink();
-            }, Math.random() * 4000 + 2000);
+            }, next);
         }
     }
 
-    // --- DIRECTOR (CEREBRO) ---
+    // --- EL CEREBRO (DIRECTOR) ---
     const Director = {
         chars: {},
-        state: 'IDLE', 
+        state: 'GOSSIP', // GOSSIP, SUSPICIOUS, ANGRY
         annoyance: 0,
         timer: null,
 
         init() {
             const stage = document.getElementById('stage');
-            CHARS_CONFIG.forEach(c => this.chars[c.id] = new Character(c, stage));
-
-            document.body.addEventListener('pointerdown', (e) => {
-                if(!e.target.closest('.char-wrapper')) this.handleGlobalTouch();
+            CHARS_CONFIG.forEach(c => {
+                this.chars[c.id] = new Character(c, stage);
             });
-            document.addEventListener('contextmenu', e => e.preventDefault());
+
+            // ESCUCHADOR GLOBAL DE TOQUES (FONDO)
+            document.body.addEventListener('pointerdown', (e) => {
+                // Si el target no es un personaje, es el fondo
+                if(!e.target.closest('.char-wrapper')) {
+                    this.handleGlobalTouch();
+                }
+            });
+
+            // Evitar menú contextual
+            document.addEventListener('contextmenu', event => event.preventDefault());
 
             this.brainLoop();
         },
 
-        // --- MAQUINA DE ESTADOS SOCIALES ---
+        // --- BUCLE PRINCIPAL DE IA ---
         brainLoop() {
-            if (this.state === 'ANGRY') return;
+            if (this.state === 'ANGRY') return; // Si están enojados, no piensan, solo juzgan.
 
-            // Resetear estado físico (dejar de hablar, volver a eje vertical)
-            Object.values(this.chars).forEach(c => {
-                c.stopTalk();
-                c.lean(0); // Volver a estar rectos
-            });
+            // Resetear
+            Object.values(this.chars).forEach(c => c.stopTalk());
 
-            const scenario = Math.random();
+            // Decidir qué hacer (Random Event Generator)
+            const r = Math.random();
 
-            if (scenario < 0.4) {
-                this.scenario_GossipNormal();
-            } else if (scenario < 0.7) {
-                this.scenario_SecretHuddle();
-            } else if (scenario < 0.9) {
-                this.scenario_ParanoidCheck();
-            } else {
-                this.scenario_Disagreement();
-            }
+            if (r < 0.6) {
+                // --- CHISME NORMAL ---
+                const speakerId = Object.keys(this.chars)[Math.floor(Math.random() * 4)];
+                const speaker = this.chars[speakerId];
+                speaker.talk();
 
-            // Siguiente ciclo
-            this.timer = setTimeout(() => this.brainLoop(), Math.random() * 2500 + 2000);
-        },
-
-        // ESCENARIO 1: Chisme Estándar
-        scenario_GossipNormal() {
-            const ids = Object.keys(this.chars);
-            const speaker = this.chars[ids[Math.floor(Math.random() * ids.length)]];
-            speaker.talk();
-
-            Object.values(this.chars).forEach(c => {
-                if(c !== speaker) {
-                    // Gordito no gira, solo escucha
-                    if(c.id === 'orange') return;
-                    
-                    // A veces miran al hablante, a veces miran al vacío
-                    if(Math.random() > 0.3) {
-                        const dir = (speaker.id === 'purple' || speaker.id === 'black') ? -1 : 1;
-                        c.look(dir * 2, 0);
+                // Reacción de los oyentes
+                Object.values(this.chars).forEach(c => {
+                    if(c !== speaker) {
+                        // Gordito escucha de espaldas (sin girar)
+                        if(c.id === 'orange' && Math.random() > 0.5) return; 
+                        
+                        // Los demás miran sutilmente
+                        if(Math.random() > 0.3) {
+                             // Pequeño movimiento de ojos hacia quien habla
+                             const dir = (speakerId === 'purple') ? -1 : 1;
+                             c.look(dir * 2, 0);
+                        }
                     }
-                    
-                    // Asentir ocasionalmente
-                    if(Math.random() > 0.7) setTimeout(() => c.nod(), 1000);
+                });
+
+            } else if (r < 0.8) {
+                // --- EVENTO ALEATORIO ---
+                const eventR = Math.random();
+                if(eventR < 0.3) this.chars['orange'].laugh();
+                else if(eventR < 0.6) this.chars['yellow'].shiver();
+                else {
+                    // El negro se aburre
+                    this.chars['black'].express('suspicious');
+                    this.chars['black'].turnTo(30, 1); // Mira a otro lado
+                    setTimeout(() => this.chars['black'].turnTo(0, 1), 1500);
                 }
-            });
+            }
+            
+            // Loop siguiente
+            this.timer = setTimeout(() => this.brainLoop(), Math.random() * 2000 + 1500);
         },
 
-        // ESCENARIO 2: El "Huddle" (Secreto)
-        scenario_SecretHuddle() {
-            // Todos se inclinan hacia el centro
-            Object.values(this.chars).forEach(c => {
-                c.lean(c.config.leanDir); // Inclinarse
-                c.express('suspicious');
-                c.talk(true); // Susurrar
-                
-                // Si es el gordito, acerca un poco la cara al centro
-                if(c.id === 'orange') c.turnTo(160, 1); 
-                else c.look(0, 0); // Ojos al centro
-            });
-
-            // En medio del secreto, uno vigila
-            setTimeout(() => {
-                if(this.state === 'ANGRY') return;
-                const spy = this.chars['purple']; // El lider suele vigilar
-                spy.stopTalk();
-                spy.lean(0); // Se pone recto
-                spy.look(3, 0); // Mira al usuario
-                spy.express('suspicious');
-                
-                setTimeout(() => {
-                    if(this.state === 'ANGRY') return;
-                    spy.lean(spy.config.leanDir); // Vuelve al grupo
-                    spy.talk(true);
-                }, 1500);
-            }, 1000);
-        },
-
-        // ESCENARIO 3: Paranoia (Hablando de TI)
-        scenario_ParanoidCheck() {
-            // Uno habla
-            const speaker = this.chars['black'];
-            speaker.talk();
-
-            // Otro (Amarillo) mira fijamente a la cámara con miedo
-            const watcher = this.chars['yellow'];
-            watcher.express('shock');
-            watcher.look(0, 0); // Mirada frontal
-            watcher.shiver();
-
-            // El lider mira al amarillo como diciendo "¿Qué haces?"
-            const leader = this.chars['purple'];
-            leader.look(4, 0); // Mira al amarillo
-            leader.express('angry');
-        },
-
-        // ESCENARIO 4: Desacuerdo
-        scenario_Disagreement() {
-            const speaker = this.chars['purple'];
-            speaker.talk();
-            speaker.express('angry');
-
-            setTimeout(() => {
-                // El negro niega con la cabeza
-                this.chars['black'].shakeHead();
-                this.chars['black'].express('bored');
-                
-                // El amarillo mira al negro preocupado
-                this.chars['yellow'].look(-3, 0);
-            }, 500);
-        },
-
-        // --- INTERACCIONES ---
+        // --- INTERACCIÓN: MOLESTAR AL GRUPO (FONDO) ---
         handleGlobalTouch() {
             this.annoyance++;
             clearTimeout(this.timer);
-            Object.values(this.chars).forEach(c => { c.stopTalk(); c.lean(0); });
+            Object.values(this.chars).forEach(c => c.stopTalk());
 
-            // NIVEL 1: ALERTA (Se callan y miran)
+            console.log("Annoyance Lvl:", this.annoyance);
+
+            // NIVEL 1: SOSPECHA (1-3 toques)
             if (this.annoyance <= 3) {
                 this.state = 'SUSPICIOUS';
                 
-                // Gordito: Mira por encima del hombro
+                // 1. EL GORDITO MIRA POR ENCIMA DEL HOMBRO
+                // Su cara está en 200. La traemos a 70 (borde visible)
                 const fat = this.chars['orange'];
-                fat.turnTo(70, 0.8); fat.look(4, 0); fat.express('suspicious');
+                fat.turnTo(70, 0.8); 
+                fat.look(4, 0); // Ojos al extremo
+                fat.express('suspicious');
 
-                // Lider: Te juzga
+                // 2. EL LIDER VIGILA
                 const purple = this.chars['purple'];
-                purple.express('suspicious'); purple.look(3, 0);
-                
-                // Los otros cruzan miradas entre ellos
-                this.chars['yellow'].look(-3, 0); // Mira al negro
-                this.chars['black'].look(3, 0);   // Mira al amarillo
+                purple.express('suspicious');
+                purple.look(3, 0);
 
                 setTimeout(() => this.recover(), 2500);
-            } 
-            // NIVEL 2: CONFRONTACIÓN
+            }
+            
+            // NIVEL 2: ENOJO / CONFRONTACIÓN (4+ toques)
             else {
                 this.state = 'ANGRY';
-                
-                // Gordito se gira completo
-                this.chars['orange'].turnTo(0, 1.5); this.chars['orange'].express('angry');
-                
-                // Resto encara
-                this.chars['purple'].turnTo(0, 0.5); this.chars['purple'].express('angry');
-                this.chars['yellow'].turnTo(0, 0.3); this.chars['yellow'].shiver();
-                this.chars['black'].express('angry');
 
-                // SPAM CHECK
-                if (this.annoyance > 7) {
+                // TODOS SE GIRAN A MIRARTE
+                
+                // Gordito se da la vuelta completa (Lento y dramático)
+                const fat = this.chars['orange'];
+                fat.turnTo(0, 1.5, 0); 
+                fat.express('angry');
+
+                // Los demás encaran rápido
+                this.chars['purple'].turnTo(0, 0.5);
+                this.chars['purple'].express('angry');
+
+                this.chars['yellow'].turnTo(0, 0.3);
+                this.chars['yellow'].shiver(); // Se asusta de la tensión
+
+                this.chars['black'].express('angry');
+                
+                // Si molestas DEMASIADO (spam click > 8)
+                if (this.annoyance > 8) {
                     this.chars['black'].spit();
-                    this.annoyance = 0;
+                    this.annoyance = 0; // Resetear tras ataque
                 }
+
                 setTimeout(() => this.recover(), 4000);
             }
         },
 
+        // --- INTERACCIÓN: TOCAR A UN BICHO ---
         handleCharTouch(char) {
-            this.annoyance = 5;
+            this.annoyance = 5; // Escala inmediata
             clearTimeout(this.timer);
-            Object.values(this.chars).forEach(c => { c.stopTalk(); c.lean(0); });
+            Object.values(this.chars).forEach(c => c.stopTalk());
 
+            // Reacción Individual
             gsap.to(char.el, { scale: 1.15, duration: 0.1, yoyo: true, repeat: 1 });
 
-            if(char.id === 'orange') { // Susto por la espalda
-                char.turnTo(0, 0.2); char.express('shock');
-                setTimeout(() => char.turnTo(200, 1.5), 2000);
+            if(char.id === 'orange') {
+                // El gordito se asusta al ser tocado por la espalda
+                char.turnTo(0, 0.2); // Giro ultra rápido
+                char.express('shock');
+                setTimeout(() => char.turnTo(200, 1.5), 2000); // Se esconde lento
             } else if (char.id === 'black') {
+                // El negro te escupe directo
                 char.spit();
             } else if (char.id === 'yellow') {
                 char.shiver();
             }
 
-            // El resto mira al tocado
+            // Los demás miran al tocado
             Object.values(this.chars).forEach(c => {
                 if(c !== char) {
                     c.turnTo(0, 0.5);
+                    // Ojos apuntando al centro (donde suelen estar)
                     c.look(char.id === 'orange' ? -3 : 3, 0);
                     c.express('shock');
                 }
             });
+
             setTimeout(() => this.recover(), 3000);
         },
 
         recover() {
-            this.state = 'IDLE';
-            this.annoyance = Math.max(0, this.annoyance - 2);
+            this.state = 'GOSSIP';
+            this.annoyance = Math.max(0, this.annoyance - 2); // Baja enojo poco a poco
+
+            // Volver a posiciones originales
             Object.values(this.chars).forEach(c => {
-                c.turnTo(c.config.faceX, 1.2, Math.random()*0.5);
+                const delay = Math.random() * 0.5;
+                c.turnTo(c.config.faceX, 1.2, delay);
                 c.express('neutral');
                 c.look(0, 0);
             });
+
             this.timer = setTimeout(() => this.brainLoop(), 2000);
         }
     };
 
+    // Inicio
     window.onload = () => Director.init();
 
 </script>
