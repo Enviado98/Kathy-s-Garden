@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gossip Gang: Ultimate</title>
+    <title>Gossip Gang v2.0: Weather</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
         :root {
             --bg: #e8e8f2;
             --purple: #6a1b9a;
             --black: #212121;
-            --orange: #ff6f00; /* Naranja fuerte */
+            --orange: #ff6f00;
             --yellow: #fdd835;
+            --btn-bg: rgba(255,255,255,0.8);
         }
 
-        /* --- 1. CORE & NO-SELECT (Fix del Azul) --- */
+        /* --- CORE SETUP --- */
         * {
             box-sizing: border-box;
-            -webkit-tap-highlight-color: rgba(0,0,0,0); /* CLAVE: Quita el azul */
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
             -webkit-touch-callout: none;
             user-select: none;
             -webkit-user-select: none;
@@ -29,179 +30,216 @@
             background-color: var(--bg);
             height: 100vh;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             font-family: sans-serif;
-            touch-action: none; /* Bloqueo gestos nativos */
+            touch-action: none;
+            transition: background-color 1s ease;
         }
 
-        /* --- ESCENARIO --- */
+        body.night-mode {
+            background-color: #2c3e50; /* Color noche para el frío */
+        }
+
         .stage {
             position: relative;
             width: 340px;
             height: 320px;
-            pointer-events: none; /* Dejamos pasar clicks a los bichos */
+            pointer-events: none;
+            z-index: 1;
         }
 
-        /* --- ESTRUCTURA DE PERSONAJE --- */
+        /* --- WEATHER ELEMENTS --- */
+        .umbrella {
+            position: absolute;
+            top: -60px; left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 250px; height: 100px;
+            background: #333;
+            border-radius: 125px 125px 0 0;
+            z-index: 50; /* Por encima de todos */
+            transform-origin: bottom center;
+            opacity: 0;
+        }
+        .umbrella::after { /* El palo */
+            content: ''; position: absolute;
+            top: 100%; left: 50%; margin-left: -2px;
+            width: 4px; height: 150px; background: #222;
+        }
+
+        .campfire {
+            position: absolute;
+            bottom: 20px; left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 40px; height: 40px;
+            z-index: 40; /* Delante de los de atrás, detrás del gordito */
+            opacity: 0;
+        }
+        .fire-flame {
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 20px; height: 20px; background: #ff5722;
+            border-radius: 50% 0 50% 50%;
+            transform: rotate(-45deg);
+            animation: flicker 0.5s infinite alternate;
+        }
+        @keyframes flicker { 0% { opacity: 0.8; transform: rotate(-45deg) scale(1); } 100% { opacity: 1; transform: rotate(-45deg) scale(1.2); } }
+
+        .rain-drop {
+            position: fixed;
+            background: #a0c4ff;
+            width: 2px; height: 10px;
+            top: -10px;
+            pointer-events: none;
+            z-index: 60;
+        }
+
+        /* --- UI CONTROLS --- */
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+            background: var(--btn-bg);
+            padding: 10px 20px;
+            border-radius: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .btn {
+            background: none; border: none;
+            font-size: 24px; cursor: pointer;
+            transition: transform 0.2s;
+            opacity: 0.5;
+        }
+        .btn.active { opacity: 1; transform: scale(1.2); }
+        .btn:active { transform: scale(0.9); }
+
+        /* --- PERSONAJES (BASE) --- */
         .char-wrapper {
             position: absolute;
             bottom: 0;
-            pointer-events: auto; /* Reactivar clicks */
-            overflow: hidden; /* Mantiene la cara dentro del cuerpo */
+            pointer-events: auto;
+            overflow: hidden;
             transform-origin: bottom center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            transition: transform 0.1s;
+            transition: z-index 0s; 
             will-change: transform;
         }
 
-        /* Contenedor deslizante de la cara (Parallax) */
         .face-layer {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
         }
-
         .eyes-row {
-            position: absolute;
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
+            position: absolute; width: 100%; display: flex; justify-content: space-around;
         }
-
         .eye {
-            position: relative;
-            background: white;
-            border-radius: 50%;
-            overflow: hidden;
+            position: relative; background: white; border-radius: 50%; overflow: hidden;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
-
         .pupil {
-            position: absolute;
-            background: black;
-            border-radius: 50%;
-            width: 45%; height: 45%;
-            top: 27%; left: 27%;
+            position: absolute; background: black; border-radius: 50%;
+            width: 45%; height: 45%; top: 27%; left: 27%;
         }
-
         .eyelid {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 0%;
-            background: inherit; 
-            z-index: 10;
+            position: absolute; top: 0; left: 0; width: 100%; height: 0%;
+            background: inherit; z-index: 10;
         }
-        /* Fix Safari Colors */
+        
         .c-purple .eyelid { background: var(--purple); }
         .c-black .eyelid { background: var(--black); }
         .c-orange .eyelid { background: var(--orange); }
         .c-yellow .eyelid { background: var(--yellow); }
 
         .mouth {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #222;
-            border-radius: 10px;
+            position: absolute; left: 50%; transform: translateX(-50%);
+            background: #222; border-radius: 10px;
         }
 
-        /* --- DISEÑOS INDIVIDUALES --- */
-
-        /* MORADO (Líder) */
+        /* DISEÑOS INDIVIDUALES */
         #purple {
-            left: 30px; bottom: 90px;
-            width: 90px; height: 200px;
-            background: var(--purple);
-            border-radius: 8px;
-            z-index: 10;
+            left: 30px; bottom: 90px; width: 90px; height: 200px;
+            background: var(--purple); border-radius: 8px; z-index: 10;
         }
         #purple .eyes-row { top: 60px; padding: 0 10px; }
         #purple .eye { width: 20px; height: 20px; }
         #purple .mouth { top: 95px; width: 20px; height: 4px; }
 
-        /* NEGRO (Hater) */
         #black {
-            left: 140px; bottom: 80px;
-            width: 80px; height: 160px;
-            background: var(--black);
-            border-radius: 6px;
-            z-index: 5;
+            left: 140px; bottom: 80px; width: 80px; height: 160px;
+            background: var(--black); border-radius: 6px; z-index: 5;
         }
         #black .eyes-row { top: 50px; padding: 0 8px; }
         #black .eye { width: 16px; height: 16px; }
         #black .mouth { top: 80px; width: 12px; height: 2px; background: #666; }
 
-        /* AMARILLO (Nervioso) */
         #yellow {
-            right: 20px; bottom: 0;
-            width: 80px; height: 130px;
-            background: var(--yellow);
-            border-radius: 40px 40px 0 0;
-            z-index: 20;
+            right: 20px; bottom: 0; width: 80px; height: 130px;
+            background: var(--yellow); border-radius: 40px 40px 0 0; z-index: 20;
         }
         #yellow .eyes-row { top: 40px; padding: 0 10px; }
         #yellow .eye { width: 12px; height: 12px; background: #111; }
         #yellow .pupil { display: none; }
         #yellow .mouth { top: 65px; width: 15px; height: 3px; }
 
-        /* NARANJA (Gordito - De Espaldas) */
         #orange {
-            left: -10px; bottom: 0;
-            width: 190px; height: 110px;
-            background: var(--orange);
-            border-radius: 95px 95px 10px 10px;
-            z-index: 30; /* Al frente */
+            left: -10px; bottom: 0; width: 190px; height: 110px;
+            background: var(--orange); border-radius: 95px 95px 10px 10px; z-index: 30;
         }
         #orange .eyes-row { top: 35px; justify-content: center; gap: 20px; }
         #orange .eye { width: 15px; height: 15px; }
         #orange .mouth { top: 65px; width: 25px; height: 5px; }
 
-        /* --- PARTÍCULAS --- */
+        /* PARTICULAS FX */
         .spit {
-            position: fixed;
-            width: 12px; height: 12px;
-            background: #a0e0ff;
-            border-radius: 50%;
-            border: 2px solid #fff;
-            pointer-events: none;
-            z-index: 9999;
+            position: fixed; width: 12px; height: 12px;
+            background: #a0e0ff; border-radius: 50%; border: 2px solid #fff;
+            pointer-events: none; z-index: 9999;
         }
         .sweat {
-            position: absolute;
-            width: 8px; height: 12px;
-            background: #00d2ff;
-            border-radius: 0 50% 50% 50%;
-            transform: rotate(45deg);
+            position: absolute; width: 8px; height: 12px;
+            background: #00d2ff; border-radius: 0 50% 50% 50%; transform: rotate(45deg);
         }
 
     </style>
 </head>
 <body>
 
-<div class="stage" id="stage"></div>
+    <div class="stage" id="stage">
+        <div class="umbrella" id="umbrella"></div>
+        <div class="campfire" id="campfire">
+            <div class="fire-flame"></div>
+            <div class="fire-flame" style="left:40%; animation-delay:0.1s; transform:scale(0.8)"></div>
+            <div class="fire-flame" style="left:60%; animation-delay:0.2s; transform:scale(0.6)"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn active" onclick="Director.setWeather('SUN')" title="Normal">☀️</button>
+        <button class="btn" onclick="Director.setWeather('COLD')" title="Frío">❄️</button>
+        <button class="btn" onclick="Director.setWeather('RAIN')" title="Lluvia">🌧️</button>
+    </div>
 
 <script>
     /**
-     * MOTOR DE COMPORTAMIENTO "LIVING TOYS"
+     * CONFIGURACIÓN
      */
-
-    // Configuración Inicial
-    // faceX: Posición inicial de la cara (0=centro, >100=oculta/espalda)
     const CHARS_CONFIG = [
-        { id: 'purple', type: 'rect', faceX: 30,  role: 'leader' },
-        { id: 'black',  type: 'rect', faceX: 0,   role: 'hater' },
-        { id: 'yellow', type: 'round', faceX: -20, role: 'nervous' },
-        { id: 'orange', type: 'fat',   faceX: 200, role: 'fat' } // 200 = Totalmente de espaldas
+        { id: 'purple', type: 'rect', faceX: 30,  leanDir: 5 },
+        { id: 'black',  type: 'rect', faceX: 0,   leanDir: 2 },
+        { id: 'yellow', type: 'round', faceX: -20, leanDir: -5 },
+        { id: 'orange', type: 'fat',   faceX: 200, leanDir: 2 } 
     ];
 
     class Character {
         constructor(config, stage) {
             this.id = config.id;
             this.config = config;
-            this.role = config.role;
             this.currentFaceX = config.faceX;
             this.isTalking = false;
+            this.baseX = 0; // Para recordar posición original al moverse
 
             this.el = this.createDOM(stage);
             this.face = this.el.querySelector('.face-layer');
@@ -209,17 +247,13 @@
             this.eyelids = this.el.querySelectorAll('.eyelid');
             this.mouth = this.el.querySelector('.mouth');
 
-            // Set inicial
             gsap.set(this.face, { x: this.currentFaceX });
             
-            // Ciclos de vida
             this.breathe();
             this.blink();
 
-            // Interacción Individual
             this.el.addEventListener('pointerdown', (e) => {
-                e.stopPropagation(); // Evita tocar el fondo
-                e.preventDefault(); // Evita selección
+                e.stopPropagation(); e.preventDefault();
                 Director.handleCharTouch(this);
             });
         }
@@ -241,25 +275,23 @@
             return div;
         }
 
-        // --- SISTEMA DE MOVIMIENTO ---
-
-        // Mueve la cara entera (Giro de cabeza/cuerpo)
-        turnTo(targetX, speed = 1, delay = 0) {
-            this.currentFaceX = targetX;
-            gsap.to(this.face, {
-                x: targetX,
-                duration: speed,
-                delay: delay,
-                ease: "power2.inOut"
-            });
+        // --- MOVIMIENTO ---
+        // Nuevo: Mueve el cuerpo físico (para juntarse en la fogata)
+        moveWrapper(x, duration = 1) {
+            gsap.to(this.el, { x: x, duration: duration, ease: "power2.inOut" });
         }
 
-        // Mueve solo las pupilas (Mirada)
-        look(x, y) {
-            // El amarillo no tiene pupilas
-            if(this.id !== 'yellow') {
-                gsap.to(this.pupils, { x: x, y: y, duration: 0.3 });
-            }
+        turnTo(targetX, speed = 1, delay = 0) {
+            this.currentFaceX = targetX;
+            gsap.to(this.face, { x: targetX, duration: speed, delay: delay, ease: "power2.inOut" });
+        }
+
+        look(x, y, speed = 0.3) {
+            if(this.id !== 'yellow') gsap.to(this.pupils, { x: x, y: y, duration: speed });
+        }
+
+        lean(angle, duration = 0.5) {
+            gsap.to(this.el, { rotation: angle, duration: duration, ease: "back.out(1.2)" });
         }
 
         express(mood) {
@@ -272,34 +304,33 @@
             } else if (mood === 'shock') {
                 gsap.to(this.eyelids, { height: '0%', duration: 0.1 });
                 gsap.to(this.mouth, { width: 12, height: 12, borderRadius: '50%', duration: 0.1 });
-            } else if (mood === 'suspicious') {
-                gsap.to(this.eyelids, { height: '35%', duration: 0.4 });
-                gsap.to(this.mouth, { x: 3, width: 8, duration: 0.4 });
+            } else if (mood === 'suspicious' || mood === 'bored') { // Bored eyes
+                gsap.to(this.eyelids, { height: '45%', duration: 0.4 });
+                gsap.to(this.mouth, { x: 0, width: 10, height: 2, duration: 0.4 });
             } else if (mood === 'happy') {
                 gsap.to(this.eyelids, { height: '0%', duration: 0.3 });
                 gsap.to(this.mouth, { borderRadius: '0 0 20px 20px', height: 8, width: 18, duration: 0.3 });
-            } else {
-                // Neutral
+            } else { // Neutral
                 gsap.to(this.eyelids, { height: '0%', duration: 0.5 });
                 const w = this.id === 'yellow' ? 15 : (this.id === 'orange' ? 25 : 15);
                 gsap.to(this.mouth, { width: w, height: 4, borderRadius: '5px', x: 0, duration: 0.5 });
             }
         }
 
-        talk() {
+        // --- ACCIONES ---
+        nod() { gsap.to(this.el, { y: 3, duration: 0.15, yoyo: true, repeat: 1 }); }
+        shakeHead() { gsap.to(this.face, { x: "+=3", duration: 0.1, yoyo: true, repeat: 3 }); }
+
+        talk(isWhispering = false) {
             if(this.isTalking) return;
             this.isTalking = true;
-            
-            // Si está de espaldas (Gordito), no mueve la boca, mueve el cuerpo
             if(this.id === 'orange' && this.currentFaceX > 100) {
-                this.bodyTalk = gsap.to(this.el, { y: -3, scaleY: 1.02, duration: 0.2, yoyo: true, repeat: -1 });
+                this.bodyTalk = gsap.to(this.el, { y: -2, scaleY: 1.01, duration: 0.2, yoyo: true, repeat: -1 });
                 return;
             }
-
-            this.mouthTalk = gsap.to(this.mouth, { 
-                height: "+=4", width: "+=2", 
-                duration: 0.15, repeat: -1, yoyo: true 
-            });
+            const speed = isWhispering ? 0.1 : 0.15;
+            const size = isWhispering ? "+=1" : "+=4";
+            this.mouthTalk = gsap.to(this.mouth, { height: size, width: "+=2", duration: speed, repeat: -1, yoyo: true });
         }
 
         stopTalk() {
@@ -310,260 +341,301 @@
             this.express('neutral');
         }
 
-        // --- ACCIONES ESPECIALES ---
-        
         spit() {
-            // Acción exclusiva del Negro
             this.express('angry');
-            // Cargar hacia atrás
             gsap.to(this.el, { scale: 0.9, y: 5, duration: 0.3, onComplete: () => {
-                // Disparar hacia adelante
                 gsap.to(this.el, { scale: 1.1, y: -5, duration: 0.1, yoyo: true, repeat: 1 });
-                
-                // Crear partícula
-                const spit = document.createElement('div');
-                spit.className = 'spit';
+                const spit = document.createElement('div'); spit.className = 'spit';
                 const rect = this.mouth.getBoundingClientRect();
-                spit.style.left = rect.left + 'px';
-                spit.style.top = rect.top + 'px';
+                spit.style.left = rect.left + 'px'; spit.style.top = rect.top + 'px';
                 document.body.appendChild(spit);
-
-                // Volar hacia la cámara
-                gsap.to(spit, {
-                    scale: 5,
-                    opacity: 0,
-                    top: window.innerHeight / 2,
-                    left: window.innerWidth / 2,
-                    duration: 0.5,
-                    ease: "power2.in",
-                    onComplete: () => spit.remove()
-                });
+                gsap.to(spit, { scale: 6, opacity: 0, top: window.innerHeight/2, left: window.innerWidth/2, duration: 0.5, ease: "power2.in", onComplete: () => spit.remove() });
             }});
         }
 
         shiver() {
-            // Acción exclusiva del Amarillo
-            this.express('shock');
-            gsap.to(this.el, { x: 2, duration: 0.05, repeat: 10, yoyo: true });
-            
-            // Gotita de sudor
-            const sweat = document.createElement('div');
-            sweat.className = 'sweat';
-            this.el.appendChild(sweat);
-            gsap.set(sweat, { left: '100%', top: 0 });
-            gsap.to(sweat, { top: 20, opacity: 0, duration: 1, onComplete: () => sweat.remove() });
+            // Tiembla rítmicamente (para miedo o frío)
+            this.shiverAnim = gsap.to(this.el, { x: "+=1", duration: 0.08, repeat: -1, yoyo: true });
+        }
+        stopShiver() {
+            if(this.shiverAnim) this.shiverAnim.kill();
+            gsap.to(this.el, { x: 0, duration: 0.2 });
         }
 
-        laugh() {
-            // El gordito se ríe
-            this.express('happy');
-            gsap.to(this.el, { scaleX: 1.05, scaleY: 0.95, duration: 0.2, repeat: 3, yoyo: true });
-        }
-
-        // --- VIDA AUTÓNOMA ---
         breathe() {
             const rate = Math.random() * 1 + 2;
-            gsap.to(this.el, { 
-                scaleY: 1.015, y: -1, 
-                duration: rate, repeat: -1, yoyo: true, ease: "sine.inOut" 
-            });
+            gsap.to(this.el, { scaleY: 1.015, y: -1, duration: rate, repeat: -1, yoyo: true, ease: "sine.inOut" });
         }
 
         blink() {
-            const next = Math.random() * 4000 + 2000;
             setTimeout(() => {
-                // No parpadear si está furioso
-                gsap.to(this.eyelids, { height: '100%', duration: 0.1, yoyo: true, repeat: 1 });
+                if(!this.isTalking) gsap.to(this.eyelids, { height: '100%', duration: 0.1, yoyo: true, repeat: 1 });
                 this.blink();
-            }, next);
+            }, Math.random() * 4000 + 2000);
         }
     }
 
-    // --- EL CEREBRO (DIRECTOR) ---
+    // --- DIRECTOR (CEREBRO) ---
     const Director = {
         chars: {},
-        state: 'GOSSIP', // GOSSIP, SUSPICIOUS, ANGRY
+        state: 'GOSSIP', 
+        weather: 'SUN', // SUN, RAIN, COLD
         annoyance: 0,
         timer: null,
+        rainInterval: null,
 
         init() {
             const stage = document.getElementById('stage');
-            CHARS_CONFIG.forEach(c => {
-                this.chars[c.id] = new Character(c, stage);
-            });
+            CHARS_CONFIG.forEach(c => this.chars[c.id] = new Character(c, stage));
 
-            // ESCUCHADOR GLOBAL DE TOQUES (FONDO)
             document.body.addEventListener('pointerdown', (e) => {
-                // Si el target no es un personaje, es el fondo
-                if(!e.target.closest('.char-wrapper')) {
-                    this.handleGlobalTouch();
-                }
+                if(!e.target.closest('.char-wrapper') && !e.target.closest('.btn')) this.handleGlobalTouch();
             });
-
-            // Evitar menú contextual
-            document.addEventListener('contextmenu', event => event.preventDefault());
+            document.addEventListener('contextmenu', e => e.preventDefault());
 
             this.brainLoop();
         },
 
-        // --- BUCLE PRINCIPAL DE IA ---
-        brainLoop() {
-            if (this.state === 'ANGRY') return; // Si están enojados, no piensan, solo juzgan.
+        // --- SISTEMA DE CLIMA ---
+        setWeather(type) {
+            this.weather = type;
+            
+            // Actualizar botones UI
+            document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.btn[onclick*="${type}"]`).classList.add('active');
 
-            // Resetear
-            Object.values(this.chars).forEach(c => c.stopTalk());
+            // Limpiar estados previos
+            clearInterval(this.rainInterval);
+            document.querySelectorAll('.rain-drop').forEach(r => r.remove());
+            gsap.to('#umbrella', { scale: 0, opacity: 0 });
+            gsap.to('#campfire', { scale: 0, opacity: 0 });
+            document.body.classList.remove('night-mode');
+            
+            // Detener cualquier cháchara
+            Object.values(this.chars).forEach(c => {
+                c.stopTalk(); c.stopShiver(); c.lean(0);
+            });
+            clearTimeout(this.timer);
 
-            // Decidir qué hacer (Random Event Generator)
-            const r = Math.random();
+            if (type === 'SUN') {
+                this.state = 'GOSSIP';
+                // Volver a posición original
+                Object.values(this.chars).forEach(c => c.moveWrapper(0));
+                // Gordito de espaldas
+                this.chars['orange'].turnTo(200);
+                // Resto mira normal
+                this.chars['purple'].turnTo(30);
+                this.chars['black'].turnTo(0);
+                this.chars['yellow'].turnTo(-20);
+                
+                this.brainLoop();
 
-            if (r < 0.6) {
-                // --- CHISME NORMAL ---
-                const speakerId = Object.keys(this.chars)[Math.floor(Math.random() * 4)];
-                const speaker = this.chars[speakerId];
-                speaker.talk();
+            } else if (type === 'RAIN') {
+                this.state = 'WAITING';
+                
+                // Sacar paraguas
+                gsap.to('#umbrella', { scale: 1, opacity: 1, duration: 0.5, ease: "back.out" });
 
-                // Reacción de los oyentes
+                // Juntarse al centro
+                this.chars['purple'].moveWrapper(30);
+                this.chars['black'].moveWrapper(-20);
+                this.chars['yellow'].moveWrapper(-50);
+                this.chars['orange'].moveWrapper(20);
+
+                // Todos miran al frente con cara de aburridos/esperando
                 Object.values(this.chars).forEach(c => {
-                    if(c !== speaker) {
-                        // Gordito escucha de espaldas (sin girar)
-                        if(c.id === 'orange' && Math.random() > 0.5) return; 
-                        
-                        // Los demás miran sutilmente
-                        if(Math.random() > 0.3) {
-                             // Pequeño movimiento de ojos hacia quien habla
-                             const dir = (speakerId === 'purple') ? -1 : 1;
-                             c.look(dir * 2, 0);
-                        }
-                    }
+                    c.turnTo(0); // Mirar al frente
+                    c.express('bored'); // Ojos a media asta
+                    c.look(0, 0); // Mirada fija al usuario
                 });
 
-            } else if (r < 0.8) {
-                // --- EVENTO ALEATORIO ---
-                const eventR = Math.random();
-                if(eventR < 0.3) this.chars['orange'].laugh();
-                else if(eventR < 0.6) this.chars['yellow'].shiver();
-                else {
-                    // El negro se aburre
-                    this.chars['black'].express('suspicious');
-                    this.chars['black'].turnTo(30, 1); // Mira a otro lado
-                    setTimeout(() => this.chars['black'].turnTo(0, 1), 1500);
-                }
+                // Lluvia FX
+                this.rainInterval = setInterval(this.createRainDrop, 50);
+
+            } else if (type === 'COLD') {
+                this.state = 'WAITING';
+                document.body.classList.add('night-mode');
+                
+                // Sacar fuego
+                gsap.to('#campfire', { scale: 1, opacity: 1, duration: 0.5 });
+
+                // Juntarse MUCHO al centro (huddle)
+                this.chars['purple'].moveWrapper(40);
+                this.chars['black'].moveWrapper(-30);
+                this.chars['yellow'].moveWrapper(-60);
+                this.chars['orange'].moveWrapper(30);
+
+                // Todos miran al fuego y tiemblan
+                Object.values(this.chars).forEach(c => {
+                    c.turnTo(0);
+                    c.look(0, 1); // Miran abajo (al fuego)
+                    c.express('neutral');
+                    c.shiver(); // Tiemblan
+                });
             }
-            
-            // Loop siguiente
-            this.timer = setTimeout(() => this.brainLoop(), Math.random() * 2000 + 1500);
         },
 
-        // --- INTERACCIÓN: MOLESTAR AL GRUPO (FONDO) ---
+        createRainDrop() {
+            const drop = document.createElement('div');
+            drop.className = 'rain-drop';
+            drop.style.left = Math.random() * 100 + 'vw';
+            drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
+            document.body.appendChild(drop);
+            
+            gsap.to(drop, {
+                top: '100vh', 
+                duration: 0.8, 
+                ease: "none", 
+                onComplete: () => drop.remove()
+            });
+        },
+
+        // --- MAQUINA DE ESTADOS SOCIALES (SOLO FUNCIONA CON SOL) ---
+        brainLoop() {
+            if (this.state === 'ANGRY' || this.weather !== 'SUN') return;
+
+            // Resetear estado físico
+            Object.values(this.chars).forEach(c => { c.stopTalk(); c.lean(0); });
+
+            const scenario = Math.random();
+
+            if (scenario < 0.4) this.scenario_GossipNormal();
+            else if (scenario < 0.7) this.scenario_SecretHuddle();
+            else if (scenario < 0.9) this.scenario_ParanoidCheck();
+            else this.scenario_Disagreement();
+
+            this.timer = setTimeout(() => this.brainLoop(), Math.random() * 2500 + 2000);
+        },
+
+        // (Mantengo los escenarios originales intactos)
+        scenario_GossipNormal() {
+            const ids = Object.keys(this.chars);
+            const speaker = this.chars[ids[Math.floor(Math.random() * ids.length)]];
+            speaker.talk();
+            Object.values(this.chars).forEach(c => {
+                if(c !== speaker) {
+                    if(c.id === 'orange') return;
+                    if(Math.random() > 0.3) {
+                        const dir = (speaker.id === 'purple' || speaker.id === 'black') ? -1 : 1;
+                        c.look(dir * 2, 0);
+                    }
+                    if(Math.random() > 0.7) setTimeout(() => c.nod(), 1000);
+                }
+            });
+        },
+
+        scenario_SecretHuddle() {
+            Object.values(this.chars).forEach(c => {
+                c.lean(c.config.leanDir); c.express('suspicious'); c.talk(true);
+                if(c.id === 'orange') c.turnTo(160, 1); else c.look(0, 0);
+            });
+            setTimeout(() => {
+                if(this.state === 'ANGRY' || this.weather !== 'SUN') return;
+                const spy = this.chars['purple'];
+                spy.stopTalk(); spy.lean(0); spy.look(3, 0); spy.express('suspicious');
+                setTimeout(() => {
+                    if(this.state === 'ANGRY') return;
+                    spy.lean(spy.config.leanDir); spy.talk(true);
+                }, 1500);
+            }, 1000);
+        },
+
+        scenario_ParanoidCheck() {
+            this.chars['black'].talk();
+            const watcher = this.chars['yellow'];
+            watcher.express('shock'); watcher.look(0, 0);
+            // El amarillo tiembla solo brevemente (reutilizo shiver pero lo apago rapido)
+            gsap.to(watcher.el, { x: 2, duration: 0.05, repeat: 10, yoyo: true });
+            
+            const leader = this.chars['purple'];
+            leader.look(4, 0); leader.express('angry');
+        },
+
+        scenario_Disagreement() {
+            const speaker = this.chars['purple'];
+            speaker.talk(); speaker.express('angry');
+            setTimeout(() => {
+                this.chars['black'].shakeHead(); this.chars['black'].express('bored');
+                this.chars['yellow'].look(-3, 0);
+            }, 500);
+        },
+
+        // --- INTERACCIONES ---
         handleGlobalTouch() {
+            // Si estamos en Clima, solo miran un momento y siguen
+            if(this.weather !== 'SUN') {
+                Object.values(this.chars).forEach(c => {
+                    c.express('shock');
+                    gsap.to(c.el, { y: -5, duration: 0.1, yoyo: true, repeat: 1 });
+                });
+                setTimeout(() => {
+                    // Restaurar cara de aburridos o frio
+                    Object.values(this.chars).forEach(c => c.express(this.weather === 'RAIN' ? 'bored' : 'neutral'));
+                }, 1000);
+                return;
+            }
+
             this.annoyance++;
             clearTimeout(this.timer);
-            Object.values(this.chars).forEach(c => c.stopTalk());
+            Object.values(this.chars).forEach(c => { c.stopTalk(); c.lean(0); });
 
-            console.log("Annoyance Lvl:", this.annoyance);
-
-            // NIVEL 1: SOSPECHA (1-3 toques)
             if (this.annoyance <= 3) {
                 this.state = 'SUSPICIOUS';
-                
-                // 1. EL GORDITO MIRA POR ENCIMA DEL HOMBRO
-                // Su cara está en 200. La traemos a 70 (borde visible)
                 const fat = this.chars['orange'];
-                fat.turnTo(70, 0.8); 
-                fat.look(4, 0); // Ojos al extremo
-                fat.express('suspicious');
-
-                // 2. EL LIDER VIGILA
+                fat.turnTo(70, 0.8); fat.look(4, 0); fat.express('suspicious');
                 const purple = this.chars['purple'];
-                purple.express('suspicious');
-                purple.look(3, 0);
-
+                purple.express('suspicious'); purple.look(3, 0);
+                this.chars['yellow'].look(-3, 0); this.chars['black'].look(3, 0);
                 setTimeout(() => this.recover(), 2500);
-            }
-            
-            // NIVEL 2: ENOJO / CONFRONTACIÓN (4+ toques)
-            else {
+            } else {
                 this.state = 'ANGRY';
-
-                // TODOS SE GIRAN A MIRARTE
-                
-                // Gordito se da la vuelta completa (Lento y dramático)
-                const fat = this.chars['orange'];
-                fat.turnTo(0, 1.5, 0); 
-                fat.express('angry');
-
-                // Los demás encaran rápido
-                this.chars['purple'].turnTo(0, 0.5);
-                this.chars['purple'].express('angry');
-
-                this.chars['yellow'].turnTo(0, 0.3);
-                this.chars['yellow'].shiver(); // Se asusta de la tensión
-
+                this.chars['orange'].turnTo(0, 1.5); this.chars['orange'].express('angry');
+                this.chars['purple'].turnTo(0, 0.5); this.chars['purple'].express('angry');
+                this.chars['yellow'].turnTo(0, 0.3); 
+                // Amarillo tiembla de miedo
+                gsap.to(this.chars['yellow'].el, { x: 2, duration: 0.05, repeat: 10, yoyo: true });
                 this.chars['black'].express('angry');
-                
-                // Si molestas DEMASIADO (spam click > 8)
-                if (this.annoyance > 8) {
+                if (this.annoyance > 7) {
                     this.chars['black'].spit();
-                    this.annoyance = 0; // Resetear tras ataque
+                    this.annoyance = 0;
                 }
-
                 setTimeout(() => this.recover(), 4000);
             }
         },
 
-        // --- INTERACCIÓN: TOCAR A UN BICHO ---
         handleCharTouch(char) {
-            this.annoyance = 5; // Escala inmediata
+            // Reacción incluso en clima
+            this.annoyance = 5;
             clearTimeout(this.timer);
-            Object.values(this.chars).forEach(c => c.stopTalk());
+            Object.values(this.chars).forEach(c => { c.stopTalk(); c.lean(0); });
 
-            // Reacción Individual
             gsap.to(char.el, { scale: 1.15, duration: 0.1, yoyo: true, repeat: 1 });
 
-            if(char.id === 'orange') {
-                // El gordito se asusta al ser tocado por la espalda
-                char.turnTo(0, 0.2); // Giro ultra rápido
-                char.express('shock');
-                setTimeout(() => char.turnTo(200, 1.5), 2000); // Se esconde lento
+            if(char.id === 'orange') { 
+                char.turnTo(0, 0.2); char.express('shock');
+                setTimeout(() => { if(this.weather==='SUN') char.turnTo(200, 1.5); }, 2000);
             } else if (char.id === 'black') {
-                // El negro te escupe directo
                 char.spit();
             } else if (char.id === 'yellow') {
-                char.shiver();
+                gsap.to(char.el, { x: 2, duration: 0.05, repeat: 10, yoyo: true });
             }
 
-            // Los demás miran al tocado
             Object.values(this.chars).forEach(c => {
                 if(c !== char) {
                     c.turnTo(0, 0.5);
-                    // Ojos apuntando al centro (donde suelen estar)
                     c.look(char.id === 'orange' ? -3 : 3, 0);
                     c.express('shock');
                 }
             });
-
             setTimeout(() => this.recover(), 3000);
         },
 
         recover() {
-            this.state = 'GOSSIP';
-            this.annoyance = Math.max(0, this.annoyance - 2); // Baja enojo poco a poco
+            if(this.weather !== 'SUN') {
+                // Si estaba lloviendo o frio, volver a ese estado
+                this.setWeather(this.weather);
+                return;
+            }
 
-            // Volver a posiciones originales
-            Object.values(this.chars).forEach(c => {
-                const delay = Math.random() * 0.5;
-                c.turnTo(c.config.faceX, 1.2, delay);
-                c.express('neutral');
-                c.look(0, 0);
-            });
-
-            this.timer = setTimeout(() => this.brainLoop(), 2000);
-        }
-    };
-
-    // Inicio
-    window.onload = () => Director.init();
-
-</script>
-</body>
-</html>
+            this.state = 'IDLE';
+            this.annoyance = Math.max(0, this.annoyance - 2)
