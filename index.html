@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Saitama Final Image</title>
+    <title>Saitama Corrected</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
         body {
@@ -20,51 +20,56 @@
             user-select: none;
         }
 
-        /* CONTENEDOR FLUIDO: Se ajusta al tamaño exacto de la imagen */
+        /* 
+           CONTENEDOR INTELIGENTE:
+           Se comporta como una caja ajustada. Su tamaño ES el tamaño de la imagen.
+           Ni un pixel más, ni un pixel menos.
+        */
         #container {
             position: relative;
-            line-height: 0;
-            display: inline-block; /* Clave para que no ocupe más de lo necesario */
+            display: inline-block; /* Se encoge al contenido */
+            line-height: 0;        /* Mata espacios verticales fantasma */
             width: auto;
             height: auto;
+            /* Límites para que no se salga de pantalla */
+            max-width: 90vw;
+            max-height: 80vh;
         }
 
         #saitama-img {
             display: block;
-            /* La imagen nunca se saldrá de la pantalla, pero mantiene su ratio */
-            max-width: 90vw;
-            max-height: 90vh;
-            width: auto;
-            height: auto;
-            pointer-events: none;
+            width: 100%;       /* Ocupa todo el contenedor */
+            height: auto;      /* Mantiene proporción */
+            object-fit: contain;
         }
 
-        /* CUENCAS (MÁSCARAS) */
+        /* MÁSCARAS DE OJOS */
         .eye-socket {
             position: absolute;
             background: transparent;
             overflow: hidden;
             z-index: 10;
             border-radius: 48%; 
-            /* Descomenta la siguiente línea para ver los bordes rojos y verificar posición */
+            /* Descomenta para ver la caja roja si necesitas depurar */
             /* border: 1px solid red; */
         }
 
-        /* --- COORDENADAS AJUSTADAS A TU IMAGEN --- */
+        /* --- COORDENADAS RECALIBRADAS (SEPARACIÓN DE OJOS) --- */
         
         #eye-left {
             top: 26%;
-            left: 37%;
+            /* Movido a la IZQUIERDA (37% -> 35.5%) para alejarlo de la nariz */
+            left: 35.5%;
             width: 14%;
             height: 11%;
             transform: rotate(8deg);
         }
 
         #eye-right {
-            /* BAJADO al 31% para que no quede arriba */
-            top: 31%;
-            /* SEPARADO al 64% para eliminar lo bizco */
-            left: 64%;   
+            /* BAJADO (31% -> 32%) para alineación vertical */
+            top: 32%;
+            /* MOVIDO A LA DERECHA (64% -> 68%) ¡ESTO CURA LO BIZCO! */
+            left: 68%;   
             width: 13%;
             height: 10%;
             transform: rotate(-5deg);
@@ -75,10 +80,10 @@
             position: absolute;
             background: #000;
             border-radius: 50%;
-            /* Tamaño pequeño fiel al anime */
             width: 11%; 
             height: 15%;
-            /* Centrado absoluto */
+            
+            /* Centrado absoluto dentro de la cuenca */
             top: 50%; 
             left: 50%;
             transform: translate(-50%, -50%); 
@@ -98,7 +103,6 @@
 <body>
 
     <div id="container">
-        <!-- TU IMAGEN DESDE EL LINK PROPORCIONADO -->
         <img id="saitama-img" src="https://raw.githubusercontent.com/Enviado98/Kathy-s-Garden/refs/heads/main/images.png" alt="Saitama">
         
         <div id="eye-left" class="eye-socket"><div class="pupil"></div></div>
@@ -111,7 +115,8 @@
         const pupils = document.querySelectorAll('.pupil');
         let returnTimer = null;
 
-        // 1. ESTADO INICIAL: Mirada perdida (arriba a la izquierda)
+        // 1. ESTADO INICIAL
+        // Mirada distraída (arriba izquierda)
         gsap.set(pupils, { x: -10, y: -8 });
 
         // 2. INTERACCIÓN
@@ -121,24 +126,24 @@
             if(returnTimer) clearTimeout(returnTimer);
             gsap.killTweensOf(pupils);
 
-            // ANIMACIÓN: Mirar FIJAMENTE al espectador (Centro 0,0)
+            // ANIMACIÓN: Mirar al centro (0,0 es el centro de la cuenca)
+            // Como hemos movido las cuencas hacia afuera, el centro ahora es recto.
             gsap.to(pupils, {
                 x: 0,
                 y: 0,
-                duration: 1.5, // Movimiento lento
+                duration: 1.5, 
                 ease: "power2.out"
             });
 
-            // 3. RETORNO AUTOMÁTICO
+            // 3. RETORNO
             returnTimer = setTimeout(() => {
-                // Vuelve a mirar a lo lejos
                 gsap.to(pupils, {
                     x: -10, 
                     y: -8,
                     duration: 2.5,
                     ease: "power2.inOut"
                 });
-            }, 3500); // Espera 3.5 segundos mirándote
+            }, 3500);
         });
     </script>
 </body>
