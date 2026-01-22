@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Saitama Mobile Fix</title>
+    <title>Saitama Final Fix</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
         body {
@@ -20,25 +20,24 @@
             user-select: none;
         }
 
-        /* EL CONTENEDOR SE ADAPTA A LA IMAGEN, NO AL REVÉS */
+        /* 
+           CLAVE DEL ARREGLO:
+           El contenedor no tiene tamaño fijo. Se expande solo lo que ocupe la imagen.
+           Esto elimina los espacios vacíos que desalineaban los ojos en móvil.
+        */
         #container {
             position: relative;
-            /* Esto asegura que el div mida EXÁCTAMENTE lo que mide la imagen */
-            width: auto;
-            height: auto;
-            max-width: 90vw;  /* No pasarse del ancho en móvil */
-            max-height: 80vh; /* No pasarse del alto */
-            line-height: 0;   /* Elimina espacios fantasma */
+            line-height: 0; /* Elimina espacio fantasma debajo de la imagen */
+            display: inline-block; /* Se ajusta al contenido */
         }
 
         #saitama-img {
             display: block;
-            width: 100%;
-            height: 100%;
-            /* Clave: Max-width y max-height aseguran que la imagen escale 
-               manteniendo su proporción sin deformarse ni dejar bordes */
-            max-width: 90vw;
-            max-height: 80vh;
+            /* La imagen manda. Ella decide el tamaño. */
+            max-width: 90vw;  /* No más ancha que la pantalla */
+            max-height: 90vh; /* No más alta que la pantalla */
+            width: auto;
+            height: auto;
         }
 
         /* CUENCAS */
@@ -48,12 +47,11 @@
             overflow: hidden;
             z-index: 10;
             border-radius: 48%; 
-            /* debug: border: 1px solid red; */
+            /* border: 1px solid red; <--- Usa esto si necesitas ver donde están */
         }
 
-        /* --- CALIBRACIÓN MÓVIL --- */
-        /* He movido el Left y el Top ligeramente para asegurar simetría */
-
+        /* --- COORDENADAS FINALES --- */
+        
         #eye-left {
             top: 25.5%;
             left: 36.5%;
@@ -64,8 +62,12 @@
 
         #eye-right {
             top: 29%;
-            /* He movido esto de 58.5% a 59.5% para separarlo un poco más */
-            left: 59.5%;   
+            /* 
+               CORRECCIÓN DE BIZCO: 
+               Estaba en 58.5%. Lo he movido a 60.5%. 
+               Al alejarlo del centro, la mirada se endereza.
+            */
+            left: 60.5%;   
             width: 13%;
             height: 10%;
             transform: rotate(-5deg);
@@ -79,7 +81,7 @@
             width: 11%; 
             height: 15%;
             
-            /* Centrado absoluto inicial */
+            /* Centrado absoluto */
             top: 50%; 
             left: 50%;
             transform: translate(-50%, -50%); 
@@ -99,16 +101,11 @@
 <body>
 
     <div id="container">
-        <!-- Imagen -->
         <img id="saitama-img" src="https://raw.githubusercontent.com/Enviado98/Kathy-s-Garden/refs/heads/main/images.png" alt="Saitama">
-
+        
         <!-- Ojos -->
-        <div id="eye-left" class="eye-socket">
-            <div class="pupil"></div>
-        </div>
-        <div id="eye-right" class="eye-socket">
-            <div class="pupil"></div>
-        </div>
+        <div id="eye-left" class="eye-socket"><div class="pupil"></div></div>
+        <div id="eye-right" class="eye-socket"><div class="pupil"></div></div>
     </div>
 
     <div class="hint">Toca la pantalla</div>
@@ -117,19 +114,18 @@
         const pupils = document.querySelectorAll('.pupil');
         let returnTimer = null;
 
-        // 1. ESTADO INICIAL (Mirada perdida "Saitama Style")
+        // 1. ESTADO INICIAL (Mirada perdida)
         // x: -8, y: -8 (Mirando ligeramente arriba a la izquierda)
         gsap.set(pupils, { x: -8, y: -8 });
 
         // 2. INTERACCIÓN
         document.body.addEventListener('pointerdown', (e) => {
-            e.preventDefault(); // Evita comportamientos raros en móvil
+            e.preventDefault();
             
             if(returnTimer) clearTimeout(returnTimer);
             gsap.killTweensOf(pupils);
 
             // ANIMACIÓN: Mirada Fija al centro
-            // duration: 1.5s (Lento y dramático)
             gsap.to(pupils, {
                 x: 0,
                 y: 0,
@@ -148,7 +144,6 @@
                 });
             }, 3500);
         });
-
     </script>
 </body>
 </html>
