@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Saitama Real Eyes</title>
+    <title>Saitama Simple</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
         body {
@@ -22,222 +22,157 @@
 
         #container {
             position: relative;
+            /* Mantiene la proporción cuadrada perfecta para que las coordenadas no fallen */
             width: 90vmin; 
-            height: 90vmin;
+            height: 90vmin; 
         }
 
-        /* 1. IMAGEN BASE */
+        /* IMAGEN DE FONDO */
         #saitama-img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            position: relative;
-            z-index: 1;
+            pointer-events: none; /* Dejar pasar los clicks */
         }
 
-        /* 2. CAPA DE OSCURIDAD */
-        #darkness-layer {
+        /* MÁSCARAS DE LOS OJOS ( invisibles ) */
+        /* Estos divs definen el límite del ojo. Si la pupila pasa de aquí, se recorta. */
+        .eye-socket {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); /* Más oscuro */
-            mix-blend-mode: multiply; /* Se fusiona mejor con el dibujo */
-            opacity: 0;
-            pointer-events: none;
-            z-index: 10; /* Encima de la imagen */
-            transition: opacity 1s ease;
+            background: transparent; /* Transparente para ver el blanco original de la imagen */
+            overflow: hidden; /* Recorta la pupila */
+            z-index: 10;
+            /* Bordes suavizados para seguir la linea del dibujo */
+            border-radius: 50%;
         }
 
-        /* 3. ENVOLTORIO DE OJOS (MÁSCARA) */
-        .eye-wrapper {
-            position: absolute;
-            /* AQUÍ ESTÁ EL CAMBIO: Fondo transparente */
-            background: transparent; 
-            
-            /* Esto recorta la pupila para que no se salga del ojo */
-            overflow: hidden; 
-            
-            z-index: 20; /* Encima de la oscuridad */
-            
-            /* Forma aproximada para que coincida con el dibujo */
-            /* Si las pupilas se cortan antes de tiempo, ajusta width/height */
-        }
-
-        /* Ajuste de posición (calibrado para la imagen de Saitama) */
+        /* AJUSTE MILIMÉTRICO DE POSICIÓN */
+        /* Calibrado para la imagen específica de Saitama */
+        
         #eye-left {
-            top: 25%; left: 37%;
-            width: 12%; height: 10%;
-            border-radius: 40% 50% 40% 40%;
-            transform: rotate(5deg);
+            top: 25.5%;
+            left: 36.5%;
+            width: 14%;
+            height: 11%;
+            transform: rotate(8deg); /* Rotación ligera del dibujo original */
         }
 
         #eye-right {
-            top: 29%; left: 60%;
-            width: 11%; height: 9%;
-            border-radius: 40% 50% 40% 40%;
+            top: 29%;
+            left: 59%;
+            width: 13%;
+            height: 10%;
             transform: rotate(-5deg);
         }
 
-        /* 4. PUPILAS */
+        /* PUPILAS */
         .pupil {
             position: absolute;
-            background: #000; /* Negras */
+            background: #000;
             border-radius: 50%;
-            width: 15%;  /* Tamaño pupila */
-            height: 20%;
-            /* Posición inicial distraída */
-            top: 30%; 
-            left: 20%; 
-            opacity: 0.9;
-        }
-
-        /* 5. FLASH DE RAYOS */
-        #lightning-flash {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #fff;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 100;
-            mix-blend-mode: screen;
+            width: 14%; /* Tamaño pequeño estilo "One" */
+            height: 18%;
+            
+            /* Posición inicial centrada relativa al socket */
+            top: 50%; 
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
 
         .hint {
-            position: absolute; bottom: 20px; font-family: monospace; color: #555; opacity: 0.5;
+            position: absolute;
+            bottom: 20px;
+            font-family: sans-serif;
+            color: #aaa;
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
 
     <div id="container">
-        <!-- Reemplaza con tu imagen local o URL -->
+        <!-- Imagen original sin pupilas -->
         <img id="saitama-img" src="https://raw.githubusercontent.com/Enviado98/Kathy-s-Garden/refs/heads/main/images.png" alt="Saitama">
-        
-        <div id="darkness-layer"></div>
 
-        <!-- Ojos Transparentes (Solo contienen la pupila y cortan los bordes) -->
-        <div id="eye-left" class="eye-wrapper"><div class="pupil"></div></div>
-        <div id="eye-right" class="eye-wrapper"><div class="pupil"></div></div>
+        <!-- Ojo Izquierdo -->
+        <div id="eye-left" class="eye-socket">
+            <div class="pupil"></div>
+        </div>
+
+        <!-- Ojo Derecho -->
+        <div id="eye-right" class="eye-socket">
+            <div class="pupil"></div>
+        </div>
     </div>
 
-    <div id="lightning-flash"></div>
-    <div class="hint">Doble toque en pantalla</div>
+    <div class="hint">Toca la pantalla</div>
 
     <script>
         const pupils = document.querySelectorAll('.pupil');
-        const eyeWrappers = document.querySelectorAll('.eye-wrapper');
-        const darkness = document.getElementById('darkness-layer');
-        const lightning = document.getElementById('lightning-flash');
-        
-        let isSerious = false;
+        let isFocused = false;
 
-        // ANIMACIÓN "DISTRAÍDO" (IDLE)
-        function idleGaze() {
-            if(isSerious) return;
-            // Movimiento errático y lento
+        // 1. ANIMACIÓN "DISTRAÍDO" (Default)
+        // Mueve los ojos aleatoriamente, como si mirara moscas o estuviera aburrido
+        function idleAnim() {
+            if(isFocused) return;
+
             gsap.to(pupils, {
-                xPercent: "random(-15, 15)",
-                yPercent: "random(-15, 15)",
-                duration: 2.5,
+                x: "random(-10, 10)", // Movimiento leve en píxeles
+                y: "random(-5, 5)",
+                duration: "random(1, 3)", // Velocidad variable
                 ease: "sine.inOut",
-                onComplete: idleGaze
+                onComplete: idleAnim
             });
         }
-        // Iniciar mirada desviada
-        gsap.set(pupils, { left: '20%', top: '35%' });
-        idleGaze();
+        
+        // Arrancamos con los ojos un poco desviados (estilo Saitama bobo)
+        gsap.set(pupils, { x: -8, y: -5 }); 
+        idleAnim();
 
-        // DOBLE TOQUE
-        let lastTap = 0;
-        document.body.addEventListener('click', (e) => {
-            const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTap;
-            if (tapLength < 500 && tapLength > 0) {
-                if(!isSerious) activateSeriousMode();
-            }
-            lastTap = currentTime;
+        // 2. INTERACCIÓN (Tocar pantalla)
+        document.body.addEventListener('pointerdown', () => {
+            isFocused = true;
+            gsap.killTweensOf(pupils); // Detener el movimiento aleatorio
+
+            // Mirada fija al espectador (Centro absoluto)
+            gsap.to(pupils, {
+                x: 0,
+                y: 0,
+                scale: 1.2, // Se agrandan un pelín para enfocar
+                duration: 0.5, // Movimiento rápido pero suave
+                ease: "power2.out"
+            });
         });
 
-        function activateSeriousMode() {
-            isSerious = true;
-            gsap.killTweensOf(pupils);
-
-            // 1. OSCURIDAD DEL FONDO
-            gsap.to(darkness, { opacity: 0.9, duration: 1.5 });
-
-            // 2. HACER QUE LOS OJOS RESALTEN (Glow sutil)
-            // Como el wrapper es transparente, le damos un fondo blanco suave
-            // para que los ojos no se vean grises por la oscuridad
-            gsap.to(eyeWrappers, { 
-                backgroundColor: "rgba(255, 255, 255, 0.2)", 
-                boxShadow: "0 0 15px rgba(255,255,255,0.3)",
-                duration: 0.5 
-            });
-
-            // 3. PUPILAS AL CENTRO (Mirada Fija)
-            gsap.to(pupils, {
-                left: '42%', // Centro geométrico aprox
-                top: '40%',
-                xPercent: 0,
-                yPercent: 0,
-                scale: 1.3, // Pupila se dilata
-                duration: 3, // Muy lento
-                ease: "power2.inOut"
-            });
-
-            // 4. RAYOS
-            setTimeout(lightningStorm, 800);
-
-            // 5. RESET AUTOMÁTICO
-            setTimeout(resetMode, 7000);
-        }
-
-        function lightningStorm() {
-            const flash = () => {
-                if(!isSerious) return;
-                const intensity = Math.random();
-
-                // Flash pantalla completa
-                gsap.to(lightning, {
-                    opacity: intensity * 0.5,
-                    duration: 0.05,
-                    yoyo: true, repeat: 1,
-                    onComplete: () => {
-                        if(isSerious) setTimeout(flash, Math.random() * 800 + 100);
-                    }
+        // 3. SOLTAR (Volver a estar distraído)
+        document.body.addEventListener('pointerup', () => {
+            // Se queda mirando un segundo más y luego se relaja
+            setTimeout(() => {
+                isFocused = false;
+                gsap.to(pupils, {
+                    scale: 1,
+                    duration: 0.5,
+                    onComplete: idleAnim // Volver a divagar
                 });
+            }, 1000);
+        });
 
-                // Brillo extra en los ojos cuando cae rayo
-                if(intensity > 0.6) {
-                    gsap.to(eyeWrappers, {
-                        backgroundColor: "rgba(255, 255, 255, 0.9)", // Se ponen blancos brillantes
-                        boxShadow: "0 0 25px rgba(255,255,255, 1)",
-                        duration: 0.05,
-                        yoyo: true, repeat: 1
-                    });
-                }
-            };
-            flash();
-        }
-
-        function resetMode() {
-            isSerious = false;
-            // Quitar oscuridad
-            gsap.to(darkness, { opacity: 0, duration: 2 });
+        // EXTRA: Seguimiento de mouse sutil en PC
+        document.body.addEventListener('mousemove', (e) => {
+            if(isFocused) return; // Si clickea, gana el click
             
-            // Quitar brillo de ojos (vuelven a transparente)
-            gsap.to(eyeWrappers, { 
-                backgroundColor: "transparent", 
-                boxShadow: "none", 
-                duration: 1 
-            });
+            // Calculamos posición del mouse relativa al centro
+            const x = (e.clientX / window.innerWidth - 0.5) * 15;
+            const y = (e.clientY / window.innerHeight - 0.5) * 10;
 
-            // Pupilas vuelven a distraerse
             gsap.to(pupils, {
-                left: '20%', top: '35%', scale: 1,
-                duration: 2, ease: "power2.inOut",
-                onComplete: idleGaze
+                x: x,
+                y: y,
+                duration: 0.5,
+                overwrite: 'auto' // Sobrescribe la animación idle suavemente
             });
-        }
+        });
+
     </script>
 </body>
 </html>
