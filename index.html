@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Vital para móviles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kathy's Garden | El Bosque Encantado</title>
     
     <!-- Fuentes Mágicas -->
@@ -13,51 +13,65 @@
     <style>
         /* --- 1. VARIABLES & RESET --- */
         :root {
-            --forest-dark: #1a2f23;     /* Verde oscuro del fondo */
-            --forest-light: #2d4a3e;    /* Verde medio */
-            --mushroom-pink: #ffb7c5;   /* Rosa de los hongos */
-            --magic-gold: #ffeebb;      /* Dorado de la luz */
+            --forest-dark: #1a2f23;
+            --forest-light: #2d4a3e;
+            --mushroom-pink: #ffb7c5;
+            --magic-gold: #ffeebb;
             --text-main: #f0fdf4;
-            --glass-bg: rgba(20, 40, 30, 0.65);
-            --glass-border: rgba(255, 183, 197, 0.2); /* Borde rosado sutil */
+            --glass-bg: rgba(20, 40, 30, 0.75);
+            --glass-border: rgba(255, 183, 197, 0.2);
             --transition-speed: 0.5s;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
+        html, body { 
+            width: 100%; 
+            height: 100%;
+            /* Fix para scroll suave en iOS */
+            -webkit-overflow-scrolling: touch;
+        }
+
         body {
             font-family: 'Quicksand', sans-serif;
             background-color: var(--forest-dark);
             color: var(--text-main);
-            overflow-x: hidden; /* Evita scroll horizontal en móvil */
-            width: 100%;
+            overflow-x: hidden;
         }
 
-        /* Tipografías */
         h1, h2, h3 { font-family: 'Cinzel Decorative', serif; }
         .script-font { font-family: 'Great Vibes', cursive; }
 
-        /* --- 2. FONDO ANIMADO & PARTÍCULAS (Global) --- */
+        /* --- 2. FONDO CORREGIDO (ANTI-SALTOS) --- */
         #background-layer {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            /* Usar top/bottom en lugar de height:100vh evita el bug de la barra de direcciones */
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%;
+            height: 100%;
             z-index: -2;
             overflow: hidden;
             background-color: var(--forest-dark);
+            /* Aceleración de Hardware */
+            transform: translateZ(0);
+            will-change: transform;
         }
 
-        /* La imagen de fondo que respira */
         .breathing-bg {
-            width: 100%; height: 100%;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             object-position: center;
-            animation: breathe 20s ease-in-out infinite alternate;
-            filter: brightness(0.7); /* Oscurecer un poco para leer texto */
+            /* Escala inicial ligeramente mayor para evitar bordes blancos al animar */
+            transform: scale(1.05);
+            animation: breathe 30s ease-in-out infinite alternate;
+            filter: brightness(0.65);
+            backface-visibility: hidden;
         }
 
         @keyframes breathe {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.15); }
+            0% { transform: scale(1.05) translateZ(0); }
+            100% { transform: scale(1.18) translateZ(0); }
         }
 
         /* Capa de partículas */
@@ -73,18 +87,18 @@
             background: var(--magic-gold);
             border-radius: 50%;
             opacity: 0;
-            box-shadow: 0 0 10px var(--magic-gold);
-            animation: floatUp 10s linear infinite;
+            box-shadow: 0 0 8px var(--magic-gold);
+            animation: floatUp 12s linear infinite;
         }
 
         @keyframes floatUp {
-            0% { transform: translateY(100vh) scale(0); opacity: 0; }
-            20% { opacity: 0.8; }
-            80% { opacity: 0.8; }
+            0% { transform: translateY(110vh) scale(0); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.6; }
             100% { transform: translateY(-10vh) scale(1); opacity: 0; }
         }
 
-        /* --- 3. LANDING PAGE (Entrada) --- */
+        /* --- 3. LANDING PAGE --- */
         #landing-page {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -94,67 +108,64 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            background: radial-gradient(circle, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%);
-            transition: opacity 1.5s ease;
+            background: radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%);
+            transition: opacity 1.2s ease, visibility 1.2s;
             padding: 20px;
         }
 
         .landing-content h1 {
-            font-size: clamp(3rem, 10vw, 6rem); /* Responsivo: min 3rem, max 6rem */
+            font-size: clamp(2.8rem, 10vw, 6rem);
             color: var(--text-main);
-            text-shadow: 0 0 20px rgba(255, 183, 197, 0.5);
+            text-shadow: 0 0 25px rgba(255, 183, 197, 0.6);
             margin-bottom: 10px;
             line-height: 1.1;
         }
 
         .landing-content p {
-            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            font-size: clamp(1.3rem, 5vw, 2.5rem);
             color: var(--mushroom-pink);
             margin-bottom: 40px;
         }
 
         .enter-btn {
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            background: rgba(255, 255, 255, 0.1);
+            padding: 18px 45px;
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.05);
             border: 2px solid var(--mushroom-pink);
             color: var(--text-main);
             border-radius: 50px;
             cursor: pointer;
-            backdrop-filter: blur(5px);
-            transition: all 0.3s;
+            backdrop-filter: blur(8px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             font-family: 'Cinzel Decorative', serif;
             letter-spacing: 2px;
             text-transform: uppercase;
-            box-shadow: 0 0 15px rgba(255, 183, 197, 0.2);
         }
 
         .enter-btn:hover {
             background: var(--mushroom-pink);
             color: var(--forest-dark);
-            box-shadow: 0 0 40px rgba(255, 183, 197, 0.6);
-            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(255, 183, 197, 0.5);
+            transform: scale(1.08);
         }
 
-        /* --- 4. SITIO PRINCIPAL (Oculto al inicio) --- */
+        /* --- 4. SITIO PRINCIPAL --- */
         #main-site {
-            display: none; /* Se activa con JS */
+            display: none;
             opacity: 0;
-            transition: opacity 2s ease;
-            padding-top: 80px; /* Espacio para el header fijo */
+            transition: opacity 1.5s ease;
+            position: relative;
+            z-index: 10;
         }
 
-        /* Estilo Glassmorphism Reutilizable */
         .glass-panel {
             background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            border-radius: 24px;
         }
 
-        /* Header */
         header {
             position: fixed;
             top: 0; left: 0; width: 100%;
@@ -163,52 +174,35 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: 0.3s;
+            transition: 0.4s;
         }
 
         header.scrolled {
-            background: rgba(26, 47, 35, 0.95);
-            backdrop-filter: blur(10px);
+            background: rgba(20, 40, 30, 0.9);
             padding: 10px 5%;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
         .brand {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             color: var(--mushroom-pink);
             text-decoration: none;
             font-weight: 700;
+            text-shadow: 0 0 10px rgba(255,183,197,0.3);
         }
 
-        .header-icons { font-size: 1.5rem; display: flex; gap: 15px; }
-
-        /* Secciones */
-        section {
-            padding: 60px 5%;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .welcome-msg {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .welcome-msg h2 { font-size: 2.5rem; margin-bottom: 10px; color: var(--magic-gold); }
-
-        /* Grid de Productos - CORREGIDO PARA MÓVIL */
+        /* Grid de Productos */
         .product-grid {
             display: grid;
-            /* Móvil: columnas automáticas pero mínimo 160px (2 columnas en la mayoría de móviles) */
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
-            gap: 20px;
+            gap: 15px;
+            padding-bottom: 100px;
         }
 
         @media (min-width: 768px) {
             .product-grid {
-                /* Tablet/PC: cartas más grandes */
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-                gap: 30px;
+                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); 
+                gap: 25px;
             }
         }
 
@@ -216,234 +210,211 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            transition: transform 0.3s;
-            position: relative;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--magic-gold);
+            transition: transform 0.4s;
         }
 
         .img-container {
             width: 100%;
-            aspect-ratio: 1 / 1.2; /* Mantiene proporción vertical */
+            aspect-ratio: 1 / 1.1;
             overflow: hidden;
-            position: relative;
         }
 
         .img-container img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.5s ease;
         }
 
-        .product-card:hover .img-container img { transform: scale(1.1); }
+        .info { padding: 12px; text-align: center; }
+        .info h3 { font-size: 1rem; margin-bottom: 4px; color: #fff; }
+        .price { color: var(--magic-gold); font-weight: bold; font-family: 'Cinzel Decorative'; }
 
-        .info { padding: 15px; text-align: center; }
-        
-        .info h3 { 
-            font-size: 1.1rem; 
-            margin-bottom: 5px; 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-        }
-
-        .price { 
-            color: var(--magic-gold); 
-            font-weight: bold; 
-            font-size: 1.2rem; 
-            font-family: 'Cinzel Decorative', cursive;
-        }
-
-        .buy-btn {
-            margin-top: 10px;
-            width: 100%;
-            padding: 8px;
-            background: rgba(255,255,255,0.1);
+        /* --- 5. BOTÓN WHATSAPP MÁGICO --- */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            background: rgba(37, 211, 102, 0.2);
             border: 1px solid var(--mushroom-pink);
-            color: white;
-            border-radius: 10px;
-            cursor: pointer;
+            color: var(--mushroom-pink);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            text-decoration: none;
+            box-shadow: 0 0 20px rgba(255, 183, 197, 0.3);
+            transition: 0.3s;
+            display: none; /* Se activa por JS */
+            animation: pulse-pink 2s infinite;
         }
-        
-        .buy-btn:hover { background: var(--mushroom-pink); color: var(--forest-dark); }
 
-        /* Footer */
+        @keyframes pulse-pink {
+            0% { box-shadow: 0 0 0 0 rgba(255, 183, 197, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 183, 197, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 183, 197, 0); }
+        }
+
+        .whatsapp-float:hover {
+            background: var(--mushroom-pink);
+            color: var(--forest-dark);
+            transform: scale(1.1) rotate(10deg);
+        }
+
         footer {
             text-align: center;
             padding: 40px 20px;
-            margin-top: 50px;
-            background: rgba(0,0,0,0.3);
-            font-size: 0.9rem;
-            color: #aaa;
+            background: rgba(0,0,0,0.4);
+            font-size: 0.8rem;
+            opacity: 0.7;
         }
 
     </style>
 </head>
 <body>
 
-    <!-- 1. FONDO Y PARTÍCULAS (Se quedan fijos) -->
+    <!-- Capa de Fondo Fija -->
     <div id="background-layer">
-        <!-- AQUÍ VA TU IMAGEN DE FONDO (background.jpg) -->
-        <img src="background.jpg" alt="Fondo Mágico" class="breathing-bg" onerror="this.src='https://images.unsplash.com/photo-1596711680572-c1168eb518d6?q=80&w=1974&auto=format&fit=crop'"> <!-- Placeholder por si acaso falla tu imagen local -->
+        <img src="background.jpg" alt="Fondo" class="breathing-bg" onerror="this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1500&auto=format&fit=crop'">
     </div>
 
-    <div class="particles-container" id="particles">
-        <!-- Las partículas se generan con JS -->
-    </div>
+    <!-- Partículas -->
+    <div class="particles-container" id="particles"></div>
 
-    <!-- 2. PANTALLA DE BIENVENIDA (Landing) -->
+    <!-- 1. Pantalla de Bienvenida -->
     <section id="landing-page">
         <div class="landing-content">
-            <p class="script-font">Bienvenido a</p>
+            <p class="script-font">Bienvenidos a</p>
             <h1>Kathy's Garden</h1>
-            <p class="script-font" style="font-size: 1.2rem; opacity: 0.8; margin-bottom: 20px;">Donde la magia florece</p>
-            <button class="enter-btn" onclick="enterGarden()">Entrar al Jardín</button>
+            <p class="script-font" style="font-size: 1.1rem; opacity: 0.7;">Botánica Mística & Sueños</p>
+            <button class="enter-btn" onclick="enterGarden()">Abrir el Jardín</button>
         </div>
     </section>
 
-    <!-- 3. CONTENIDO PRINCIPAL (Tienda) -->
+    <!-- 2. Sitio Principal -->
     <div id="main-site">
-        
         <header id="main-header">
             <a href="#" class="brand">Kathy's Garden</a>
-            <div class="header-icons">
+            <div style="font-size: 1.4rem; display: flex; gap: 15px; color: var(--mushroom-pink);">
                 <i class="ri-search-line"></i>
                 <i class="ri-shopping-bag-3-line"></i>
             </div>
         </header>
 
-        <section>
-            <div class="welcome-msg">
-                <div class="glass-panel" style="padding: 30px; display: inline-block;">
-                    <h2>Colección del Bosque</h2>
-                    <p>Plantas raras y hongos mágicos seleccionados para ti.</p>
-                </div>
+        <section style="padding-top: 100px;">
+            <div style="text-align: center; margin-bottom: 50px;">
+                <h2 style="font-size: 2rem; color: var(--magic-gold);">Tesoros del Bosque</h2>
+                <p class="script-font" style="font-size: 1.4rem; color: var(--mushroom-pink);">Selección única de Kathy</p>
             </div>
 
             <div class="product-grid">
-                
-                <!-- PRODUCTO 1: imagen1.jpg -->
+                <!-- Producto 1 -->
                 <article class="product-card glass-panel">
                     <div class="img-container">
-                        <!-- Intenta cargar imagen1.jpg, si no existe, usa una de internet -->
-                        <img src="imagen1.jpg" alt="Producto 1" onerror="this.src='https://images.unsplash.com/photo-1615568101458-132d7593c289?auto=format&fit=crop&w=400&q=80'">
+                        <img src="imagen1.jpg" alt="Planta" onerror="this.src='https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=400'">
                     </div>
                     <div class="info">
-                        <h3>Hongo Luminoso</h3>
-                        <div class="price">$25.00</div>
-                        <button class="buy-btn">Añadir</button>
+                        <h3>Monstera Lunar</h3>
+                        <div class="price">$28.00</div>
                     </div>
                 </article>
 
-                <!-- PRODUCTO 2: imagen2.jpg -->
+                <!-- Producto 2 -->
                 <article class="product-card glass-panel">
                     <div class="img-container">
-                        <img src="imagen2.jpg" alt="Producto 2" onerror="this.src='https://images.unsplash.com/photo-1627915576156-3c224213d2d1?auto=format&fit=crop&w=400&q=80'">
+                        <img src="imagen2.jpg" alt="Planta" onerror="this.src='https://images.unsplash.com/photo-1545165375-1b744a7bb672?w=400'">
                     </div>
                     <div class="info">
-                        <h3>Begonia Mística</h3>
-                        <div class="price">$32.00</div>
-                        <button class="buy-btn">Añadir</button>
+                        <h3>Helecho Estelar</h3>
+                        <div class="price">$19.00</div>
                     </div>
                 </article>
 
-                <!-- PRODUCTO 3: imagen3.jpg -->
+                <!-- Producto 3 -->
                 <article class="product-card glass-panel">
                     <div class="img-container">
-                        <img src="imagen3.jpg" alt="Producto 3" onerror="this.src='https://images.unsplash.com/photo-1616688758832-7208e92f58e4?auto=format&fit=crop&w=400&q=80'">
+                        <img src="imagen3.jpg" alt="Planta" onerror="this.src='https://images.unsplash.com/photo-1628151016029-4d6910a43e4b?w=400'">
                     </div>
                     <div class="info">
-                        <h3>Orquídea Fantasma</h3>
-                        <div class="price">$45.00</div>
-                        <button class="buy-btn">Añadir</button>
+                        <h3>Begonia Magia</h3>
+                        <div class="price">$35.00</div>
                     </div>
                 </article>
 
-                <!-- PRODUCTO 4: imagen4.jpg -->
+                <!-- Producto 4 -->
                 <article class="product-card glass-panel">
                     <div class="img-container">
-                        <img src="imagen4.jpg" alt="Producto 4" onerror="this.src='https://images.unsplash.com/photo-1598533633653-a55e2d3089d8?auto=format&fit=crop&w=400&q=80'">
+                        <img src="imagen4.jpg" alt="Planta" onerror="this.src='https://images.unsplash.com/photo-1596547610029-4649d1ea6636?w=400'">
                     </div>
                     <div class="info">
-                        <h3>Alocasia Dragón</h3>
-                        <div class="price">$50.00</div>
-                        <button class="buy-btn">Añadir</button>
+                        <h3>Alocasia Joya</h3>
+                        <div class="price">$42.00</div>
                     </div>
                 </article>
-
-                <!-- Puedes copiar y pegar más bloques <article> y cambiar el nombre de la imagen -->
-
             </div>
         </section>
 
         <footer>
-            <p class="script-font" style="font-size: 1.5rem; color: var(--mushroom-pink);">Gracias por visitar</p>
-            <p>&copy; 2026 Kathy's Garden. Hecho con magia.</p>
+            <p class="script-font" style="font-size: 1.4rem; color: var(--mushroom-pink); margin-bottom: 10px;">Gracias por visitarnos</p>
+            <p>&copy; 2026 Kathy's Garden. Cada planta es un secreto.</p>
         </footer>
     </div>
 
+    <!-- Botón WhatsApp -->
+    <a href="https://wa.me/TUNUMEROAQUI" class="whatsapp-float" id="whatsapp-btn" target="_blank">
+        <i class="ri-whatsapp-line"></i>
+    </a>
+
     <!-- SCRIPTS -->
     <script>
-        // 1. Generar Partículas
-        function createParticles() {
+        // Crear partículas
+        function initParticles() {
             const container = document.getElementById('particles');
-            const particleCount = 20; // Cantidad de partículas
-
-            for (let i = 0; i < particleCount; i++) {
+            for (let i = 0; i < 25; i++) {
                 const p = document.createElement('div');
                 p.classList.add('particle');
-                
-                // Posición y tamaño aleatorio
-                const size = Math.random() * 4 + 2 + 'px';
+                const size = Math.random() * 5 + 2 + 'px';
                 p.style.width = size;
                 p.style.height = size;
                 p.style.left = Math.random() * 100 + 'vw';
-                p.style.animationDuration = (Math.random() * 10 + 10) + 's'; // Entre 10 y 20 segundos
-                p.style.animationDelay = Math.random() * 5 + 's';
-                
+                p.style.animationDuration = (Math.random() * 8 + 8) + 's';
+                p.style.animationDelay = Math.random() * 10 + 's';
                 container.appendChild(p);
             }
         }
 
-        // 2. Función para entrar al jardín (Transición)
+        // Transición de entrada
         function enterGarden() {
             const landing = document.getElementById('landing-page');
-            const mainSite = document.getElementById('main-site');
+            const main = document.getElementById('main-site');
+            const wp = document.getElementById('whatsapp-btn');
             
-            // Desvanecer landing
             landing.style.opacity = '0';
+            landing.style.visibility = 'hidden';
             
-            // Esperar a que termine la animación css (1.5s)
             setTimeout(() => {
                 landing.style.display = 'none';
-                
-                // Mostrar sitio principal
-                mainSite.style.display = 'block';
-                // Pequeño delay para permitir que el display:block renderice antes de cambiar opacidad
-                setTimeout(() => {
-                    mainSite.style.opacity = '1';
-                }, 50);
-                
-            }, 1000);
+                main.style.display = 'block';
+                wp.style.display = 'flex'; // Mostrar WhatsApp solo al entrar
+                setTimeout(() => { main.style.opacity = '1'; }, 50);
+            }, 1200);
         }
 
-        // 3. Efecto Header al hacer scroll
+        // Header Scroll
         window.addEventListener('scroll', () => {
             const header = document.getElementById('main-header');
-            if (window.scrollY > 50) {
+            if (window.scrollY > 40) {
                 header.classList.add('scrolled');
             } else {
                 header.classList.remove('scrolled');
             }
         });
 
-        // Iniciar
-        createParticles();
-
+        initParticles();
     </script>
 </body>
 </html>
