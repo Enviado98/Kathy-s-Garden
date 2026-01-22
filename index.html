@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Saitama Exacto</title>
+    <title>Saitama Serious Mode</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
         body {
@@ -11,272 +11,263 @@
             padding: 0;
             width: 100vw;
             height: 100vh;
-            background-color: #ffffff;
+            background-color: #f0f0f0;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            cursor: pointer;
             -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
-        #canvas-container {
-            width: 80vmin;
-            height: 80vmin;
+        #container {
             position: relative;
+            width: 90vmin; /* Se adapta a la pantalla */
+            height: 90vmin;
+            /* Debug: border: 1px solid red; */
         }
 
-        svg {
+        /* 1. LA IMAGEN BASE */
+        #saitama-img {
             width: 100%;
             height: 100%;
-            overflow: visible;
+            object-fit: contain;
+            transition: filter 0.5s;
         }
 
-        /* COLORES EXACTOS DE LA IMAGEN */
-        :root {
-            --line-color: #000000;
-            --skin-color: #FAD0B2;
-            --skin-shadow: #E2B294;
-            --suit-yellow: #FEDA2D;
-            --cape-white: #FFFFFF;
-            --cape-shadow: #EBEBEB;
-            --zipper-grey: #444444;
-            --highlight: #FFF3E8;
-        }
-
-        /* Estilos de línea estilo Anime */
-        .line {
-            fill: none;
-            stroke: var(--line-color);
-            stroke-width: 2.5;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-        
-        .line-thin {
-            fill: none;
-            stroke: var(--line-color);
-            stroke-width: 1.5;
-            stroke-linecap: round;
-        }
-
-        .skin-fill { fill: var(--skin-color); }
-        .skin-shadow-fill { fill: var(--skin-shadow); }
-        .suit-fill { fill: var(--suit-yellow); }
-        .cape-fill { fill: var(--cape-white); }
-        .cape-shadow-fill { fill: var(--cape-shadow); }
-        .eye-white { fill: #FFFFFF; stroke: var(--line-color); stroke-width: 2; }
-        .pupil { fill: #000000; }
-        .highlight-fill { fill: rgba(255, 255, 255, 0.6); }
-
-        /* Capa de pupilas para movimiento */
-        .pupil-group {
-            transform-origin: center;
-        }
-
-        /* Sombra de la cara oculta inicialmente */
-        .scary-shadow {
-            opacity: 0;
-            fill: rgba(0,0,0,0.3);
+        /* 2. CAPA DE OSCURIDAD (Velo) */
+        /* Cubre la imagen pero estará DEBAJO de los ojos blancos recreados */
+        #darkness-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); /* Oscuridad intensa */
+            mix-blend-mode: multiply;
+            opacity: 0; /* Invisible al inicio */
             pointer-events: none;
+            z-index: 10;
+            transition: opacity 1s ease;
         }
+
+        /* 3. RECREACIÓN DE LOS OJOS (Para que brillen) */
+        .eye-wrapper {
+            position: absolute;
+            background: #fff; /* El blanco del ojo */
+            overflow: hidden; /* Para que la pupila no se salga */
+            z-index: 20; /* Encima de la oscuridad */
+            box-shadow: 0 0 0px rgba(255, 255, 255, 0); /* Glow apagado */
+        }
+
+        /* Ajuste manual para coincidir con la imagen */
+        #eye-left {
+            top: 25%;
+            left: 36%;
+            width: 13%;
+            height: 10%;
+            border-radius: 50% 50% 40% 40%;
+            transform: rotate(5deg);
+        }
+
+        #eye-right {
+            top: 29%;
+            left: 59%;
+            width: 12%;
+            height: 9%;
+            border-radius: 50% 50% 40% 40%;
+            transform: rotate(-5deg);
+        }
+
+        /* 4. PUPILAS */
+        .pupil {
+            position: absolute;
+            background: #000;
+            border-radius: 50%;
+            width: 12%; 
+            height: 16%;
+            /* Posición inicial: "Mirando a lo lejos" (Desviadas) */
+            top: 40%; 
+            left: 20%; 
+            transition: transform 0.1s;
+        }
+
+        /* 5. CAPA DE RAYOS (Flash) */
+        #lightning-flash {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 100; /* Encima de todo */
+            mix-blend-mode: overlay;
+        }
+
+        /* INSTRUCCIONES */
+        .hint {
+            position: absolute;
+            bottom: 20px;
+            font-family: monospace;
+            color: #555;
+            opacity: 0.6;
+        }
+
     </style>
 </head>
 <body>
 
-    <div id="canvas-container">
-        <svg viewBox="0 0 500 600" xmlns="http://www.w3.org/2000/svg">
-            
-            <!-- 1. CAPA (FONDO) -->
-            <!-- Parte izquierda -->
-            <path class="cape-fill" d="M120,450 Q80,420 60,350 Q55,320 100,300 L150,330" />
-            <path class="line" d="M120,450 Q80,420 60,350 Q55,320 100,300" />
-            
-            <!-- Parte derecha -->
-            <path class="cape-fill" d="M380,450 Q420,420 440,350 Q445,320 400,300 L350,330" />
-            <path class="line" d="M380,450 Q420,420 440,350 Q445,320 400,300" />
+    <div id="container">
+        <!-- Usa tu imagen aquí. Si la guardas local, cambia el src -->
+        <img id="saitama-img" src="https://i.imgur.com/vHq4V9l.png" alt="Saitama">
+        
+        <!-- Capa oscura -->
+        <div id="darkness-layer"></div>
 
-            <!-- 2. CUERPO (TRAJE AMARILLO) -->
-            <path class="suit-fill" d="M150,450 C130,550 110,600 110,600 L390,600 C390,600 370,550 350,450 L380,550 L120,550 Z" />
-            <!-- Cremallera -->
-            <path style="fill:none; stroke:#333; stroke-width:3" d="M250,480 L250,600" />
-            <path style="fill:#ddd; stroke:#333; stroke-width:2" d="M240,480 L260,480 L255,500 L245,500 Z" /> <!-- Zipper head -->
-
-            <!-- 3. CUELLO -->
-            <path class="skin-fill" d="M190,380 L190,460 L310,460 L310,380" />
-            <!-- Sombra Cuello (Detalle clave) -->
-            <path class="skin-shadow-fill" d="M190,390 Q250,420 310,390 L310,460 L190,460 Z" />
-            <path class="line" d="M190,380 L190,460" /> <!-- Linea cuello izq -->
-            <path class="line" d="M310,380 L310,460" /> <!-- Linea cuello der -->
-
-            <!-- 4. BOTONES NEGROS CAPA -->
-            <circle cx="165" cy="460" r="14" fill="#222" stroke="#000" stroke-width="2"/>
-            <circle cx="335" cy="460" r="14" fill="#222" stroke="#000" stroke-width="2"/>
-
-            <!-- 5. CABEZA (FORMA DE HUEVO EXACTA) -->
-            <g id="head-group">
-                <!-- Cabeza base -->
-                <path class="skin-fill" d="M140,260 
-                                      C140,100 180,30 250,30 
-                                      C320,30 360,100 360,260 
-                                      C360,360 330,420 250,420 
-                                      C170,420 140,360 140,260 Z" />
-                
-                <!-- Borde cabeza -->
-                <path class="line" d="M140,260 
-                                      C140,100 180,30 250,30 
-                                      C320,30 360,100 360,260 
-                                      C360,360 330,420 250,420 
-                                      C170,420 140,360 140,260 Z" />
-
-                <!-- Brillo Calva (El óvalo blanco característico) -->
-                <ellipse class="highlight-fill" cx="210" cy="90" rx="25" ry="12" transform="rotate(-35 210 90)" />
-
-                <!-- Oreja Izquierda -->
-                <path class="skin-fill" d="M140,250 C120,250 125,300 142,300" />
-                <path class="line" d="M140,250 C120,250 125,300 142,300" />
-                <!-- Detalle oreja -->
-                <path class="line-thin" d="M135,265 C132,275 136,285 140,285" />
-
-                <!-- Oreja Derecha -->
-                <path class="skin-fill" d="M360,250 C380,250 375,300 358,300" />
-                <path class="line" d="M360,250 C380,250 375,300 358,300" />
-                <!-- Detalle oreja -->
-                <path class="line-thin" d="M365,265 C368,275 364,285 360,285" />
-
-                <!-- Sombra terrorífica (Oculta al inicio) -->
-                <path id="scary-shadow" class="scary-shadow" d="M140,180 Q250,220 360,180 L360,30 L140,30 Z" />
-
-                <!-- 6. CARA -->
-                
-                <!-- Cejas (Lineas finas flotantes) -->
-                <g id="eyebrows">
-                    <path class="line-thin" d="M185,190 Q215,185 245,190" />
-                    <path class="line-thin" d="M255,190 Q285,185 315,190" />
-                </g>
-
-                <!-- Ojos (Forma ovalada aburrida) -->
-                <g id="eyes">
-                    <ellipse id="eye-bg-l" class="eye-white" cx="215" cy="225" rx="28" ry="20" />
-                    <ellipse id="eye-bg-r" class="eye-white" cx="285" cy="225" rx="28" ry="20" />
-                </g>
-
-                <!-- Pupilas (Pequeños puntos negros) -->
-                <g id="pupils">
-                    <circle id="pupil-l" class="pupil" cx="215" cy="225" r="2.5" />
-                    <circle id="pupil-r" class="pupil" cx="285" cy="225" r="2.5" />
-                </g>
-
-                <!-- Nariz (Dos puntitos/linea) -->
-                <path class="line-thin" d="M248,270 L252,275" />
-
-                <!-- Boca (Sonrisa simple) -->
-                <path id="mouth" class="line" d="M220,320 Q250,340 280,320" fill="none" />
-
-            </g>
-        </svg>
+        <!-- Ojos superpuestos (Recreados para control total) -->
+        <div id="eye-left" class="eye-wrapper">
+            <div class="pupil"></div>
+        </div>
+        <div id="eye-right" class="eye-wrapper">
+            <div class="pupil"></div>
+        </div>
     </div>
 
+    <!-- Flash de rayos -->
+    <div id="lightning-flash"></div>
+
+    <div class="hint">Doble toque para molestar</div>
+
     <script>
-        // Referencias al DOM
-        const pupilL = document.getElementById('pupil-l');
-        const pupilR = document.getElementById('pupil-r');
-        const eyeBgL = document.getElementById('eye-bg-l');
-        const eyeBgR = document.getElementById('eye-bg-r');
-        const mouth = document.getElementById('mouth');
-        const eyebrows = document.getElementById('eyebrows');
-        const scaryShadow = document.getElementById('scary-shadow');
-        const container = document.getElementById('canvas-container');
-
+        // Referencias
+        const pupils = document.querySelectorAll('.pupil');
+        const darkness = document.getElementById('darkness-layer');
+        const lightning = document.getElementById('lightning-flash');
+        const eyeWrappers = document.querySelectorAll('.eye-wrapper');
+        
         let isSerious = false;
+        let lightningInterval = null;
 
-        // ANIMACIÓN IDLE (El movimiento aburrido/flotante de las pupilas)
-        function idleAnim() {
+        // ANIMACIÓN DE "A LO LEJOS" (Idle)
+        // Las pupilas se mueven muy poquito como si estuviera distraído
+        function idleGaze() {
             if(isSerious) return;
-
-            // Movimiento muy sutil y aleatorio de pupilas
-            gsap.to([pupilL, pupilR], {
-                x: "random(-2, 2)",
-                y: "random(-2, 2)",
+            
+            // Movimiento aleatorio suave en la esquina (mirando a la nada)
+            gsap.to(pupils, {
+                xPercent: "random(-10, 10)",
+                yPercent: "random(-10, 10)",
                 duration: 2,
                 ease: "sine.inOut",
-                onComplete: idleAnim
+                onComplete: idleGaze
             });
         }
-        idleAnim();
+        
+        // Iniciar mirada distraída
+        // Posicionamos las pupilas mirando "a lo lejos" (arriba izquierda, por ejemplo)
+        gsap.set(pupils, { left: '20%', top: '30%' });
+        idleGaze();
 
-        // INTERACCIÓN PRINCIPAL
+
+        // EVENTO: DOBLE TOQUE
+        let lastTap = 0;
         document.body.addEventListener('click', (e) => {
-            if(isSerious) return;
-            isSerious = true;
-
-            // Kill idle animation
-            gsap.killTweensOf([pupilL, pupilR]);
-
-            // SECUENCIA DE "MIRADA FIJA"
-            const tl = gsap.timeline({
-                onComplete: () => {
-                    // Mantener la mirada un momento y luego relajar
-                    setTimeout(() => {
-                        relaxFace();
-                    }, 4000);
-                }
-            });
-
-            // 1. La boca se pone seria (línea recta)
-            tl.to(mouth, { attr: { d: "M230,330 Q250,330 270,330" }, duration: 0.3 });
-
-            // 2. Las cejas bajan y se inclinan (Enojo)
-            tl.to(eyebrows, { y: 15, duration: 0.5, ease: "power2.out" }, "<");
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
             
-            // 3. Zoom In Lento (Tensión)
-            tl.to(container, { scale: 1.15, duration: 3, ease: "power1.out" }, "<");
-
-            // 4. MOVIMIENTO LENTO DE PUPILAS (Lo que pediste)
-            // Calculamos el centro exacto para que te mire a ti
-            tl.to([pupilL, pupilR], {
-                x: 0, // Centrar en el ojo
-                y: 0,
-                attr: { r: 4 }, // Se dilatan un poco por la intensidad
-                duration: 2, // Movimiento LENTO
-                ease: "power2.inOut" // Movimiento orgánico
-            }, "-=0.2");
-
-            // 5. Sombra dramática (Estilo manga)
-            tl.to(scaryShadow, { opacity: 1, duration: 1 }, "-=1.5");
+            if (tapLength < 500 && tapLength > 0) {
+                // DOBLE TAP DETECTADO
+                if(!isSerious) triggerSeriousMode();
+            }
+            lastTap = currentTime;
         });
 
-        function relaxFace() {
-            const tl = gsap.timeline({
-                onComplete: () => {
-                    isSerious = false;
-                    idleAnim();
-                }
+
+        function triggerSeriousMode() {
+            isSerious = true;
+            gsap.killTweensOf(pupils); // Detener animación idle
+
+            // 1. OSCURIDAD: El fondo se oscurece
+            gsap.to(darkness, { opacity: 0.9, duration: 2 });
+
+            // 2. PUPILAS: Se mueven LENTO y SUAVE hacia el espectador (Centro)
+            // Calculamos el centro del ojo (aprox 45% left, 45% top para centrar el punto)
+            gsap.to(pupils, {
+                left: '44%', // Centro horizontal del ojo
+                top: '42%',  // Centro vertical del ojo
+                xPercent: 0, // Resetear offsets del idle
+                yPercent: 0,
+                scale: 1.2, // Se dilatan un poco (intensidad)
+                duration: 2.5, // Muy lento, intimidante
+                ease: "power2.inOut"
             });
 
-            // Quitar sombra
-            tl.to(scaryShadow, { opacity: 0, duration: 0.5 });
+            // 3. SECUENCIA DE RAYOS
+            // Esperamos un poco a que empiece a mirar para soltar los rayos
+            setTimeout(() => {
+                startLightningStorm();
+            }, 1000);
 
-            // Boca feliz
-            tl.to(mouth, { attr: { d: "M220,320 Q250,340 280,320" }, duration: 0.5 }, "<");
-
-            // Cejas arriba
-            tl.to(eyebrows, { y: 0, duration: 0.5 }, "<");
-
-            // Pupilas normales
-            tl.to([pupilL, pupilR], { attr: { r: 2.5 }, duration: 0.5 }, "<");
-
-            // Zoom out
-            tl.to(container, { scale: 1, duration: 0.5 }, "<");
+            // 4. RESET (Opcional, vuelve a la normalidad después de 8 segundos)
+            setTimeout(() => {
+                resetMode();
+            }, 8000);
         }
 
-        // Efecto Parallax muy sutil al mover mouse (cuando no está serio)
-        document.body.addEventListener('mousemove', (e) => {
-            if(isSerious) return;
-            const x = (e.clientX / window.innerWidth - 0.5) * 5;
-            const y = (e.clientY / window.innerHeight - 0.5) * 5;
+        function startLightningStorm() {
+            // Función recursiva para rayos aleatorios
+            const flash = () => {
+                if(!isSerious) return;
+
+                // Intensidad aleatoria del rayo
+                const intensity = Math.random(); 
+                
+                // 1. El Flash de pantalla
+                gsap.to(lightning, {
+                    opacity: intensity * 0.6, // Flash blanco
+                    duration: 0.05,
+                    yoyo: true,
+                    repeat: 1,
+                    onComplete: () => {
+                        // Próximo rayo en tiempo aleatorio (rápido o lento)
+                        if(isSerious) setTimeout(flash, Math.random() * 1000 + 200);
+                    }
+                });
+
+                // 2. EL BRILLO DE LOS OJOS (Sincronizado con el rayo)
+                // Cuando hay rayo, los ojos brillan más
+                if (intensity > 0.5) {
+                    gsap.to(eyeWrappers, {
+                        boxShadow: `0 0 20px 5px rgba(255, 255, 255, 0.9)`, // Glow intenso
+                        duration: 0.05,
+                        yoyo: true,
+                        repeat: 1
+                    });
+                }
+            };
+            flash();
+        }
+
+        function resetMode() {
+            isSerious = false;
+
+            // Quitar oscuridad
+            gsap.to(darkness, { opacity: 0, duration: 2 });
             
-            gsap.to('#head-group', { x: x, y: y, duration: 1 });
+            // Quitar glow de ojos si quedó
+            gsap.to(eyeWrappers, { boxShadow: "0 0 0px rgba(255,255,255,0)", duration: 0.5 });
+
+            // Pupilas vuelven a mirar "a la nada"
+            gsap.to(pupils, {
+                left: '20%',
+                top: '30%',
+                scale: 1,
+                duration: 2,
+                ease: "power2.inOut",
+                onComplete: idleGaze // Reactivar idle
+            });
+        }
+
+        // --- AJUSTE RESPONSIVO ---
+        // (Para asegurar que los ojos calcen bien si la ventana cambia)
+        window.addEventListener('resize', () => {
+            // GSAP handles transforms well, no specific reload needed usually
         });
 
     </script>
