@@ -3,517 +3,495 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sylvia | Botánica Mágica</title>
-    <!-- Fuentes de Google: Playfair Display (Elegante) y Poppins (Limpia) -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <!-- Iconos RemixIcon -->
+    <title>Kathy's Garden | Fairy Forest Shop</title>
+    
+    <!-- Fuentes Mágicas -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Quicksand:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+    <!-- Iconos -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
 
     <style>
-        /* --- VARIABLES & RESET --- */
+        /* --- VARIABLES DEL BOSQUE ENCANTADO --- */
         :root {
-            --bg-color: #0f172a;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-            --accent-green: #86efac;
-            --accent-pink: #f9a8d4;
-            --blur: 16px;
+            --forest-deep: #051910;
+            --forest-mid: #0f2e22;
+            --fairy-gold: #ffd700;
+            --fairy-glow: #a7f3d0;
+            --fairy-purple: #c084fc;
+            --text-light: #e2e8f0;
+            --glass-bg: rgba(14, 39, 30, 0.4);
+            --glass-border: rgba(167, 243, 208, 0.15);
+            --card-hover: rgba(167, 243, 208, 0.1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            scroll-behavior: smooth;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            font-family: 'Quicksand', sans-serif;
+            background-color: var(--forest-deep);
+            color: var(--text-light);
             overflow-x: hidden;
-            position: relative;
+            min-height: 100vh;
         }
 
-        h1, h2, h3, .brand {
-            font-family: 'Playfair Display', serif;
+        /* --- TIPOGRAFÍA DE FANTASÍA --- */
+        h1, h2, h3, .brand-font {
+            font-family: 'Cinzel Decorative', cursive;
+            letter-spacing: 1px;
+        }
+        
+        .script-font {
+            font-family: 'Great Vibes', cursive;
+            font-size: 2rem;
+            color: var(--fairy-gold);
         }
 
-        a { text-decoration: none; color: inherit; transition: 0.3s; }
-        ul { list-style: none; }
-        img { width: 100%; display: block; }
-
-        /* --- FONDO ANIMADO (GARDEN FAIRY VIBE) --- */
-        .background-magic {
+        /* --- FONDO INMERSIVO (LUCIÉRNAGAS) --- */
+        .forest-bg {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100vh;
+            top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
+            background: radial-gradient(circle at 50% 120%, #2d5a4c 0%, var(--forest-deep) 70%);
             overflow: hidden;
-            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
         }
 
-        .orb {
+        .firefly {
             position: absolute;
+            width: 4px; height: 4px;
+            background: var(--fairy-gold);
             border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.6;
-            animation: float 20s infinite alternate;
+            box-shadow: 0 0 10px var(--fairy-gold), 0 0 20px var(--fairy-glow);
+            animation: fly 15s infinite linear;
+            opacity: 0;
         }
 
-        .orb-1 { width: 400px; height: 400px; background: #059669; top: -10%; left: -10%; animation-duration: 25s; }
-        .orb-2 { width: 300px; height: 300px; background: #db2777; bottom: 10%; right: -5%; animation-duration: 18s; }
-        .orb-3 { width: 200px; height: 200px; background: #7c3aed; top: 40%; left: 40%; animation-duration: 30s; }
-
-        @keyframes float {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(30px, 50px) scale(1.1); }
+        /* Generamos movimiento aleatorio para las luciérnagas */
+        @keyframes fly {
+            0% { transform: translate(0, 100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translate(100px, -10vh) scale(1); opacity: 0; }
         }
 
-        /* --- UTILIDAD GLASSMORPHISM --- */
+        .firefly:nth-child(1) { left: 10%; animation-duration: 12s; animation-delay: 0s; }
+        .firefly:nth-child(2) { left: 30%; animation-duration: 15s; animation-delay: 2s; }
+        .firefly:nth-child(3) { left: 70%; animation-duration: 10s; animation-delay: 1s; }
+        .firefly:nth-child(4) { left: 90%; animation-duration: 18s; animation-delay: 4s; }
+        .firefly:nth-child(5) { left: 50%; animation-duration: 20s; animation-delay: 3s; }
+        .firefly:nth-child(6) { left: 20%; animation-duration: 14s; animation-delay: 6s; }
+        .firefly:nth-child(7) { left: 80%; animation-duration: 16s; animation-delay: 5s; }
+
+        /* --- GLASSMORPHISM OSCURO --- */
         .glass {
             background: var(--glass-bg);
-            backdrop-filter: blur(var(--blur));
-            -webkit-backdrop-filter: blur(var(--blur));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        .glass-card {
-            border-radius: 20px;
-            padding: 20px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .glass-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 40px rgba(134, 239, 172, 0.2);
-            border-color: var(--accent-green);
-        }
-
-        /* --- HEADER & NAV --- */
+        /* --- HEADER --- */
         header {
             position: fixed;
-            top: 0; left: 0; width: 100%;
+            top: 0; width: 100%;
             padding: 20px 5%;
             z-index: 100;
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .nav-container {
-            border-radius: 50px;
-            padding: 10px 40px;
+            transition: 0.4s;
         }
 
         .brand {
             font-size: 1.8rem;
-            font-weight: 700;
-            background: linear-gradient(to right, var(--accent-green), var(--accent-pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .nav-menu {
+            color: var(--fairy-gold);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            text-decoration: none;
             display: flex;
-            gap: 40px;
+            align-items: center;
+            gap: 10px;
         }
 
-        .nav-link:hover { color: var(--accent-green); text-shadow: 0 0 10px var(--accent-green); }
+        nav ul { display: flex; gap: 30px; list-style: none; }
+        nav a { 
+            color: var(--text-light); text-decoration: none; 
+            font-weight: 500; transition: 0.3s;
+            position: relative;
+        }
         
-        .header-icons { display: flex; gap: 20px; font-size: 1.2rem; cursor: pointer; }
-        .cart-icon { position: relative; }
+        nav a::after {
+            content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px;
+            background: var(--fairy-gold); transition: 0.3s;
+        }
+        nav a:hover::after { width: 100%; }
+
+        .cart-wrapper { position: relative; cursor: pointer; color: var(--fairy-gold); }
         .cart-count {
             position: absolute; top: -8px; right: -8px;
-            background: var(--accent-pink); color: #fff;
-            font-size: 0.7rem; width: 18px; height: 18px;
-            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            background: var(--fairy-purple); color: white;
+            font-size: 0.7rem; width: 18px; height: 18px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
         }
 
-        /* --- HERO SECTION --- */
+        /* --- HERO --- */
         .hero {
             min-height: 100vh;
             display: flex;
             align-items: center;
-            padding: 0 10%;
+            justify-content: center;
+            text-align: center;
+            padding: 120px 20px 0;
             position: relative;
         }
 
-        .hero-content {
-            flex: 1;
+        .hero-glass-box {
+            padding: 50px;
+            border-radius: 30px; /* Bordes muy redondeados */
+            max-width: 900px;
+            position: relative;
             z-index: 2;
         }
 
-        .hero-tag {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 30px;
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-            border: 1px solid var(--accent-green);
-            color: var(--accent-green);
-        }
-
         .hero h1 {
-            font-size: 4.5rem;
-            line-height: 1.1;
+            font-size: 4rem;
             margin-bottom: 20px;
+            background: linear-gradient(to right, #fff, var(--fairy-glow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
         }
 
         .hero p {
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            margin-bottom: 40px;
-            max-width: 500px;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+            margin-bottom: 30px;
+            font-weight: 300;
         }
 
-        .btn {
-            display: inline-block;
-            padding: 15px 35px;
-            border-radius: 30px;
-            font-weight: 600;
+        .btn-magic {
+            background: linear-gradient(45deg, var(--forest-mid), #1a4d3a);
+            border: 1px solid var(--fairy-gold);
+            color: var(--fairy-gold);
+            padding: 15px 40px;
+            font-family: 'Cinzel Decorative', cursive;
+            font-weight: bold;
+            border-radius: 50px;
             cursor: pointer;
-            border: none;
-            transition: 0.3s;
+            transition: 0.4s;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        .btn-primary {
-            background: var(--text-main);
-            color: var(--bg-color);
-        }
-        
-        .btn-primary:hover {
-            background: var(--accent-green);
-            box-shadow: 0 0 20px var(--accent-green);
+        .btn-magic:hover {
+            background: var(--fairy-gold);
+            color: var(--forest-deep);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+            transform: translateY(-3px);
         }
 
-        .hero-image {
-            flex: 1;
-            position: relative;
-            display: flex;
-            justify-content: center;
-        }
+        /* --- SHOP GRID --- */
+        .shop-section { padding: 80px 10%; position: relative; }
         
-        .main-plant {
-            width: 450px;
-            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
-            animation: float 6s ease-in-out infinite;
-        }
-
-        /* --- SHOP SECTION --- */
-        .shop { padding: 80px 10%; }
-        
-        .section-header {
+        .section-title {
             text-align: center;
             margin-bottom: 60px;
         }
         
-        .section-header h2 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-        }
+        .section-title h2 { font-size: 3rem; color: var(--text-light); }
+        .section-title span { color: var(--fairy-purple); }
 
-        .filters {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .filter-btn {
-            padding: 10px 25px;
-            border-radius: 20px;
-            cursor: pointer;
-            border: 1px solid transparent;
-        }
-
-        .filter-btn.active {
-            background: rgba(255,255,255,0.1);
-            border-color: var(--accent-green);
-            color: var(--accent-green);
-        }
-
-        .products-grid {
+        .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-        }
-
-        .product-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .product-img-box {
-            height: 250px;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 15px;
-        }
-
-        .product-img-box img {
-            max-height: 100%;
-            width: auto;
-            transition: transform 0.4s;
-        }
-
-        .product-card:hover .product-img-box img {
-            transform: scale(1.1);
-        }
-
-        .product-info h3 { font-size: 1.4rem; margin-bottom: 5px; }
-        .product-info p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px; }
-        .price { font-size: 1.2rem; color: var(--accent-green); font-weight: bold; }
-
-        .add-btn {
-            margin-top: 15px;
-            padding: 10px 20px;
-            border-radius: 15px;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-            cursor: pointer;
-        }
-        
-        .add-btn:hover { background: var(--accent-green); color: var(--bg-color); }
-
-        /* --- FOOTER --- */
-        footer {
-            margin-top: 80px;
-            padding: 60px 10%;
-            border-top: 1px solid var(--glass-border);
-        }
-        
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 40px;
         }
 
-        .footer-col h4 { margin-bottom: 20px; color: var(--accent-pink); }
-        .footer-col ul li { margin-bottom: 10px; color: var(--text-muted); cursor: pointer; }
-        .footer-col ul li:hover { color: white; }
+        .card {
+            border-radius: 20px;
+            overflow: hidden;
+            transition: 0.4s;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(5, 25, 16, 0.8) 100%);
+            z-index: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            border-color: var(--fairy-gold);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+
+        .card-img {
+            height: 300px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: 0.6s;
+        }
+
+        .card:hover .card-img img { transform: scale(1.1); }
+
+        .card-content {
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-title { font-size: 1.4rem; color: #fff; margin-bottom: 5px; }
+        .card-price { 
+            font-size: 1.2rem; color: var(--fairy-gold); 
+            font-family: 'Cinzel Decorative', cursive; 
+        }
+
+        .card-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .add-btn {
+            background: transparent;
+            border: 1px solid var(--text-light);
+            color: var(--text-light);
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .add-btn:hover {
+            background: var(--fairy-gold);
+            border-color: var(--fairy-gold);
+            color: var(--forest-deep);
+        }
+
+        /* --- DECORACIONES FLOTANTES --- */
+        .floating-leaf {
+            position: absolute;
+            opacity: 0.1;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            margin-top: 100px;
+            padding: 60px 5%;
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+        }
 
         /* --- RESPONSIVE --- */
         @media (max-width: 768px) {
-            .hero { flex-direction: column; text-align: center; padding-top: 120px; }
-            .hero h1 { font-size: 3rem; }
-            .nav-menu { display: none; } /* Simplified for demo */
-            .main-plant { width: 300px; margin-top: 40px; }
+            .hero h1 { font-size: 2.5rem; }
+            nav { display: none; } /* Oculto para demo simple */
+            .header-icons { margin-left: auto; }
         }
-
     </style>
 </head>
 <body>
 
-    <!-- Fondo Mágico -->
-    <div class="background-magic">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
+    <!-- Fondo Mágico con Luciérnagas -->
+    <div class="forest-bg">
+        <div class="firefly"></div>
+        <div class="firefly"></div>
+        <div class="firefly"></div>
+        <div class="firefly"></div>
+        <div class="firefly"></div>
+        <div class="firefly"></div>
+        <div class="firefly"></div>
     </div>
 
     <!-- Navegación -->
-    <header class="glass">
-        <a href="#" class="brand">Sylvia.</a>
+    <header id="navbar" class="glass">
+        <a href="#" class="brand brand-font">
+            <i class="ri-plant-line" style="color: var(--fairy-gold);"></i> Kathy's Garden
+        </a>
         
-        <nav class="nav-container glass">
-            <ul class="nav-menu">
-                <li><a href="#home" class="nav-link">Inicio</a></li>
-                <li><a href="#shop" class="nav-link">Plantas</a></li>
-                <li><a href="#care" class="nav-link">Cuidados</a></li>
-                <li><a href="#about" class="nav-link">Nosotros</a></li>
+        <nav>
+            <ul>
+                <li><a href="#inicio">El Jardín</a></li>
+                <li><a href="#shop">Colección Mágica</a></li>
+                <li><a href="#care">Grimorio</a></li>
             </ul>
         </nav>
 
-        <div class="header-icons">
-            <i class="ri-search-line"></i>
-            <div class="cart-icon" onclick="toggleCart()">
-                <i class="ri-shopping-bag-3-line"></i>
+        <div style="display: flex; gap: 20px; font-size: 1.2rem;">
+            <i class="ri-search-2-line" style="cursor: pointer;"></i>
+            <div class="cart-wrapper" onclick="toggleCart()">
+                <i class="ri-shopping-basket-2-line"></i>
                 <span class="cart-count">0</span>
             </div>
         </div>
     </header>
 
     <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="hero-content">
-            <span class="hero-tag glass">Nueva Colección 2024 ✨</span>
-            <h1>Trae la magia de la <br> <span style="color: var(--accent-green); font-style: italic;">naturaleza</span> a casa.</h1>
-            <p>Descubre plantas exóticas seleccionadas a mano. Creamos santuarios verdes para almas modernas.</p>
-            <a href="#shop" class="btn btn-primary">Explorar Jardín</a>
-        </div>
-        
-        <div class="hero-image">
-            <!-- Imagen placeholder de alta calidad sin fondo -->
-            <img src="https://i.ibb.co/h15h09z/monstera-leaf-transparent.png" alt="Planta Monstera" class="main-plant">
+    <section id="inicio" class="hero">
+        <!-- Decoración flotante -->
+        <img src="https://i.ibb.co/6nPz9qg/leaf-shadow.png" class="floating-leaf" style="top: 10%; right: -5%; width: 400px; transform: rotate(45deg);">
+
+        <div class="hero-glass-box glass">
+            <p class="script-font">Bienvenido al bosque...</p>
+            <h1>Donde la naturaleza <br> guarda sus <span style="color: var(--fairy-gold);">secretos</span>.</h1>
+            <p>Descubre plantas exóticas, terrarios encantados y botánica rara para transformar tu hogar en un santuario etéreo.</p>
+            <a href="#shop" class="btn-magic">Explorar el Jardín</a>
         </div>
     </section>
 
-    <!-- Tienda -->
-    <section id="shop" class="shop">
-        <div class="section-header">
-            <h2>Nuestros Tesoros</h2>
-            <p style="color: var(--text-muted);">Selecciona la compañera perfecta para tu espacio</p>
+    <!-- Shop Section -->
+    <section id="shop" class="shop-section">
+        <div class="section-title">
+            <h2 class="brand-font">Tesoros Botánicos</h2>
+            <p class="script-font" style="font-size: 1.5rem; margin-top: 10px; color: var(--fairy-glow);">Curados por hadas, cuidados para ti</p>
         </div>
 
-        <div class="filters">
-            <div class="filter-btn glass active">Todas</div>
-            <div class="filter-btn glass">Interior</div>
-            <div class="filter-btn glass">Pet Friendly</div>
-            <div class="filter-btn glass">Raras</div>
-        </div>
-
-        <div class="products-grid">
+        <div class="grid">
             <!-- Producto 1 -->
-            <div class="glass glass-card product-card">
-                <div class="product-img-box">
-                    <img src="https://images.unsplash.com/photo-1614594975525-e45190c55d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" style="border-radius:15px; object-fit:cover; height:100%; width:100%; opacity: 0.9;" alt="Monstera">
+            <div class="card glass">
+                <div class="card-img">
+                    <img src="https://images.unsplash.com/photo-1598533633653-a55e2d3089d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Alocasia">
                 </div>
-                <div class="product-info">
-                    <h3>Monstera Deliciosa</h3>
-                    <p>La reina de la jungla interior</p>
-                    <div class="price">$35.00</div>
-                    <button class="add-btn" onclick="addToCart()">Añadir al Carrito</button>
+                <div class="card-content">
+                    <h3 class="card-title brand-font">Alocasia Dragón</h3>
+                    <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 10px;">Escamas plateadas y místicas</p>
+                    <div class="card-actions">
+                        <span class="card-price">$45.00</span>
+                        <button class="add-btn" onclick="addToCart(this)"><i class="ri-add-line"></i></button>
+                    </div>
                 </div>
             </div>
 
             <!-- Producto 2 -->
-            <div class="glass glass-card product-card">
-                <div class="product-img-box">
-                    <img src="https://images.unsplash.com/photo-1600411833196-7c1f6b1a8b90?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" style="border-radius:15px; object-fit:cover; height:100%; width:100%; opacity: 0.9;" alt="Pothos">
+            <div class="card glass">
+                <div class="card-img">
+                    <img src="https://images.unsplash.com/photo-1628151016029-4d6910a43e4b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Begonia">
                 </div>
-                <div class="product-info">
-                    <h3>Pothos Neón</h3>
-                    <p>Luz vibrante para rincones oscuros</p>
-                    <div class="price">$18.50</div>
-                    <button class="add-btn" onclick="addToCart()">Añadir al Carrito</button>
+                <div class="card-content">
+                    <h3 class="card-title brand-font">Begonia Maculata</h3>
+                    <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 10px;">Polka dots de fantasía</p>
+                    <div class="card-actions">
+                        <span class="card-price">$32.00</span>
+                        <button class="add-btn" onclick="addToCart(this)"><i class="ri-add-line"></i></button>
+                    </div>
                 </div>
             </div>
 
             <!-- Producto 3 -->
-            <div class="glass glass-card product-card">
-                <div class="product-img-box">
-                    <img src="https://images.unsplash.com/photo-1509423350716-97f9360b4e09?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" style="border-radius:15px; object-fit:cover; height:100%; width:100%; opacity: 0.9;" alt="Calathea">
+            <div class="card glass">
+                <div class="card-img">
+                    <img src="https://images.unsplash.com/photo-1545165375-1b744a7bb672?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Fern">
                 </div>
-                <div class="product-info">
-                    <h3>Calathea Orbifolia</h3>
-                    <p>Elegancia plateada y delicada</p>
-                    <div class="price">$42.00</div>
-                    <button class="add-btn" onclick="addToCart()">Añadir al Carrito</button>
+                <div class="card-content">
+                    <h3 class="card-title brand-font">Helecho Blue Star</h3>
+                    <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 10px;">Follaje azulado etéreo</p>
+                    <div class="card-actions">
+                        <span class="card-price">$28.00</span>
+                        <button class="add-btn" onclick="addToCart(this)"><i class="ri-add-line"></i></button>
+                    </div>
                 </div>
             </div>
-             <!-- Producto 4 -->
-             <div class="glass glass-card product-card">
-                <div class="product-img-box">
-                    <img src="https://images.unsplash.com/photo-1596547610029-4649d1ea6636?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" style="border-radius:15px; object-fit:cover; height:100%; width:100%; opacity: 0.9;" alt="Alocasia">
+            
+            <!-- Producto 4 -->
+            <div class="card glass">
+                <div class="card-img">
+                    <img src="https://images.unsplash.com/photo-1616688758832-7208e92f58e4?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Orquidea">
                 </div>
-                <div class="product-info">
-                    <h3>Alocasia Polly</h3>
-                    <p>Escultura viva exótica</p>
-                    <div class="price">$29.00</div>
-                    <button class="add-btn" onclick="addToCart()">Añadir al Carrito</button>
+                <div class="card-content">
+                    <h3 class="card-title brand-font">Orquídea Fantasma</h3>
+                    <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 10px;">Rareza botánica pura</p>
+                    <div class="card-actions">
+                        <span class="card-price">$65.00</span>
+                        <button class="add-btn" onclick="addToCart(this)"><i class="ri-add-line"></i></button>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Info Section (Glass banner) -->
+    <!-- Sección de Confianza -->
     <section style="padding: 0 10%; margin-bottom: 80px;">
-        <div class="glass glass-card" style="display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; text-align: center; gap: 20px;">
+        <div class="glass" style="padding: 40px; border-radius: 20px; display: flex; flex-wrap: wrap; justify-content: space-around; text-align: center; gap: 30px;">
             <div>
-                <i class="ri-truck-line" style="font-size: 2rem; color: var(--accent-pink);"></i>
-                <h3>Envío Seguro</h3>
-                <p style="font-size: 0.8rem; color: var(--text-muted);">Embalaje protector eco-friendly</p>
+                <i class="ri-sparkling-2-line" style="font-size: 2.5rem; color: var(--fairy-gold);"></i>
+                <h3 style="margin: 10px 0;">Magia Pura</h3>
+                <p style="font-size: 0.9rem; max-width: 200px;">Plantas sanas cultivadas con amor y polvo de hadas.</p>
             </div>
             <div>
-                <i class="ri-heart-pulse-line" style="font-size: 2rem; color: var(--accent-green);"></i>
-                <h3>Garantía de Vida</h3>
-                <p style="font-size: 0.8rem; color: var(--text-muted);">Llegan sanas o te devolvemos el dinero</p>
+                <i class="ri-e-bike-2-line" style="font-size: 2.5rem; color: var(--fairy-glow);"></i>
+                <h3 style="margin: 10px 0;">Envío Encantado</h3>
+                <p style="font-size: 0.9rem; max-width: 200px;">Llegamos a tu puerta más rápido que un colibrí.</p>
             </div>
             <div>
-                <i class="ri-customer-service-2-line" style="font-size: 2rem; color: #a78bfa;"></i>
-                <h3>Soporte Experto</h3>
-                <p style="font-size: 0.8rem; color: var(--text-muted);">Guía de cuidado incluida</p>
+                <i class="ri-magic-line" style="font-size: 2.5rem; color: var(--fairy-purple);"></i>
+                <h3 style="margin: 10px 0;">Garantía Mística</h3>
+                <p style="font-size: 0.9rem; max-width: 200px;">Si no florece la felicidad, lo arreglamos.</p>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="glass">
-        <div class="footer-content">
-            <div class="footer-col">
-                <a href="#" class="brand">Sylvia.</a>
-                <p style="margin-top: 20px; color: var(--text-muted);">Cultivando magia en pequeños espacios desde 2024.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Tienda</h4>
-                <ul>
-                    <li>Plantas de Interior</li>
-                    <li>Macetas & Sustratos</li>
-                    <li>Tarjetas de Regalo</li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Ayuda</h4>
-                <ul>
-                    <li>Envíos y Devoluciones</li>
-                    <li>FAQ</li>
-                    <li>Contáctanos</li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Síguenos</h4>
-                <div style="display: flex; gap: 15px; font-size: 1.5rem;">
-                    <i class="ri-instagram-line" style="cursor: pointer; color: var(--accent-pink);"></i>
-                    <i class="ri-facebook-circle-line" style="cursor: pointer;"></i>
-                    <i class="ri-pinterest-line" style="cursor: pointer;"></i>
-                </div>
-            </div>
+        <h2 class="brand-font" style="color: var(--fairy-gold); font-size: 2rem;">Kathy's Garden</h2>
+        <p class="script-font" style="margin-bottom: 20px;">Donde los sueños echan raíces</p>
+        
+        <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; font-size: 1.5rem;">
+            <i class="ri-instagram-line" style="cursor: pointer; color: var(--fairy-purple);"></i>
+            <i class="ri-facebook-circle-fill" style="cursor: pointer; color: var(--text-light);"></i>
+            <i class="ri-pinterest-fill" style="cursor: pointer; color: var(--fairy-gold);"></i>
         </div>
-        <div style="text-align: center; margin-top: 40px; color: var(--text-muted); font-size: 0.8rem;">
-            &copy; 2024 Sylvia Plants. Todos los derechos reservados.
-        </div>
+        
+        <p style="font-size: 0.8rem; opacity: 0.6;">&copy; 2024 Kathy's Garden. Diseñado con magia.</p>
     </footer>
 
-    <!-- Script Simple -->
+    <!-- Scripts -->
     <script>
+        // Efecto Navbar Scroll
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.style.background = 'rgba(5, 25, 16, 0.9)';
+                navbar.style.padding = '15px 5%';
+            } else {
+                navbar.style.background = 'rgba(14, 39, 30, 0.4)';
+                navbar.style.padding = '20px 5%';
+            }
+        });
+
+        // Carrito
         let count = 0;
         const cartCount = document.querySelector('.cart-count');
 
-        function addToCart() {
+        function addToCart(btn) {
             count++;
-            cartCount.textContent = count;
+            cartCount.innerText = count;
             
-            // Animación pequeña al añadir
-            cartCount.style.transform = 'scale(1.5)';
+            // Animación del botón
+            btn.innerHTML = '<i class="ri-check-line"></i>';
+            btn.style.background = 'var(--fairy-gold)';
+            btn.style.color = 'var(--forest-deep)';
+            
             setTimeout(() => {
-                cartCount.style.transform = 'scale(1)';
-            }, 200);
+                btn.innerHTML = '<i class="ri-add-line"></i>';
+                btn.style.background = 'transparent';
+                btn.style.color = 'var(--text-light)';
+            }, 1000);
         }
-
-        // Efecto scroll para el header
-        window.addEventListener('scroll', () => {
-            const header = document.querySelector('header');
-            if (window.scrollY > 50) {
-                header.style.background = 'rgba(15, 23, 42, 0.8)';
-                header.style.backdropFilter = 'blur(20px)';
-                header.style.padding = '15px 5%';
-            } else {
-                header.style.background = 'transparent';
-                header.style.backdropFilter = 'none';
-                header.style.padding = '20px 5%';
-            }
-        });
     </script>
 </body>
 </html>
