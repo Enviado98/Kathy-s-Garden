@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Saitama Simple</title>
+    <title>Saitama Fixed</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
         body {
@@ -22,39 +22,34 @@
 
         #container {
             position: relative;
-            /* Mantiene la proporción cuadrada perfecta para que las coordenadas no fallen */
             width: 90vmin; 
             height: 90vmin; 
         }
 
-        /* IMAGEN DE FONDO */
         #saitama-img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            pointer-events: none; /* Dejar pasar los clicks */
+            pointer-events: none;
         }
 
-        /* MÁSCARAS DE LOS OJOS ( invisibles ) */
-        /* Estos divs definen el límite del ojo. Si la pupila pasa de aquí, se recorta. */
+        /* CONTENEDORES DE LOS OJOS (Máscaras) */
         .eye-socket {
             position: absolute;
-            background: transparent; /* Transparente para ver el blanco original de la imagen */
-            overflow: hidden; /* Recorta la pupila */
+            background: transparent;
+            overflow: hidden;
             z-index: 10;
-            /* Bordes suavizados para seguir la linea del dibujo */
             border-radius: 50%;
+            /* Debug: border: 1px solid red;  <-- Descomenta esto si quieres ver dónde están los bordes */
         }
 
-        /* AJUSTE MILIMÉTRICO DE POSICIÓN */
-        /* Calibrado para la imagen específica de Saitama */
-        
+        /* Ajuste de posición manual para que calce perfecto en la cara */
         #eye-left {
             top: 25.5%;
             left: 36.5%;
             width: 14%;
             height: 11%;
-            transform: rotate(8deg); /* Rotación ligera del dibujo original */
+            transform: rotate(8deg);
         }
 
         #eye-right {
@@ -70,13 +65,15 @@
             position: absolute;
             background: #000;
             border-radius: 50%;
-            width: 14%; /* Tamaño pequeño estilo "One" */
-            height: 18%;
             
-            /* Posición inicial centrada relativa al socket */
+            /* Hacemos la pupila pequeña, un punto, como en el anime */
+            width: 12%; 
+            height: 16%;
+            
+            /* CENTRADO PERFECTO INICIAL */
             top: 50%; 
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%); 
         }
 
         .hint {
@@ -84,22 +81,20 @@
             bottom: 20px;
             font-family: sans-serif;
             color: #aaa;
-            font-size: 12px;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
 
     <div id="container">
-        <!-- Imagen original sin pupilas -->
+        <!-- Imagen base -->
         <img id="saitama-img" src="https://raw.githubusercontent.com/Enviado98/Kathy-s-Garden/refs/heads/main/images.png" alt="Saitama">
 
-        <!-- Ojo Izquierdo -->
+        <!-- Ojos -->
         <div id="eye-left" class="eye-socket">
             <div class="pupil"></div>
         </div>
-
-        <!-- Ojo Derecho -->
         <div id="eye-right" class="eye-socket">
             <div class="pupil"></div>
         </div>
@@ -109,68 +104,42 @@
 
     <script>
         const pupils = document.querySelectorAll('.pupil');
-        let isFocused = false;
+        let returnTimer = null;
 
-        // 1. ANIMACIÓN "DISTRAÍDO" (Default)
-        // Mueve los ojos aleatoriamente, como si mirara moscas o estuviera aburrido
-        function idleAnim() {
-            if(isFocused) return;
-
-            gsap.to(pupils, {
-                x: "random(-10, 10)", // Movimiento leve en píxeles
-                y: "random(-5, 5)",
-                duration: "random(1, 3)", // Velocidad variable
-                ease: "sine.inOut",
-                onComplete: idleAnim
-            });
-        }
+        // COORDENADAS:
+        // x: 0, y: 0  => Mirando directo al alma del espectador (Centro)
+        // x: -12, y: -6 => Mirando "a la nada" (Un poco arriba a la izquierda)
         
-        // Arrancamos con los ojos un poco desviados (estilo Saitama bobo)
-        gsap.set(pupils, { x: -8, y: -5 }); 
-        idleAnim();
+        // 1. ESTADO INICIAL: Mirando a lo lejos
+        gsap.set(pupils, { x: -12, y: -6 });
 
-        // 2. INTERACCIÓN (Tocar pantalla)
+        // 2. INTERACCIÓN
         document.body.addEventListener('pointerdown', () => {
-            isFocused = true;
-            gsap.killTweensOf(pupils); // Detener el movimiento aleatorio
+            
+            // Cancelar cualquier temporizador pendiente para evitar bugs
+            if(returnTimer) clearTimeout(returnTimer);
+            // Matar cualquier animación en curso para reaccionar al instante
+            gsap.killTweensOf(pupils);
 
-            // Mirada fija al espectador (Centro absoluto)
+            // ANIMACIÓN: Mirar al espectador
+            // Movimiento suave y lento hacia el centro (0,0)
             gsap.to(pupils, {
                 x: 0,
                 y: 0,
-                scale: 1.2, // Se agrandan un pelín para enfocar
-                duration: 0.5, // Movimiento rápido pero suave
+                duration: 1.5, // 1.5 segundos en girar la vista (lento)
                 ease: "power2.out"
             });
-        });
 
-        // 3. SOLTAR (Volver a estar distraído)
-        document.body.addEventListener('pointerup', () => {
-            // Se queda mirando un segundo más y luego se relaja
-            setTimeout(() => {
-                isFocused = false;
+            // 3. TEMPORIZADOR PARA VOLVER
+            returnTimer = setTimeout(() => {
+                // Vuelve a mirar a lo lejos
                 gsap.to(pupils, {
-                    scale: 1,
-                    duration: 0.5,
-                    onComplete: idleAnim // Volver a divagar
+                    x: -12, // Vuelve a la misma coordenada "distraída"
+                    y: -6,
+                    duration: 2, // Vuelve aún más lento, con desinterés
+                    ease: "power2.inOut"
                 });
-            }, 1000);
-        });
-
-        // EXTRA: Seguimiento de mouse sutil en PC
-        document.body.addEventListener('mousemove', (e) => {
-            if(isFocused) return; // Si clickea, gana el click
-            
-            // Calculamos posición del mouse relativa al centro
-            const x = (e.clientX / window.innerWidth - 0.5) * 15;
-            const y = (e.clientY / window.innerHeight - 0.5) * 10;
-
-            gsap.to(pupils, {
-                x: x,
-                y: y,
-                duration: 0.5,
-                overwrite: 'auto' // Sobrescribe la animación idle suavemente
-            });
+            }, 3000); // Espera 3 segundos mirándote fijamente
         });
 
     </script>
